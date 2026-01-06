@@ -2,13 +2,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Phase, Employee, Prize, Winner, Joiner } from '../types';
 import { lotteryAPI } from '../api/lottery';
-import { generatePrizeIntro, generateWinnerComment } from '../api/gemini';
+import { generatePrizeIntro, generateWinnerComment, setGeminiApiKey } from '../api/gemini';
 import { DEFAULT_CONFIG } from '../constants';
 import {
     saveEmployees, loadEmployees,
     savePrizes, loadPrizes,
     saveWinners, loadWinners,
-    clearAllData
+    clearAllData, saveGeminiKey, loadGeminiKey
 } from '../utils/storage';
 import { soundManager } from '../utils/sound';
 import { loadBGMFile } from '../utils/db';
@@ -30,6 +30,7 @@ export interface UseLotteryReturn {
     aiCommentary: string;
     isAiLoading: boolean;
     soundEnabled: boolean;
+    geminiKey: string;
 
     // Actions
     setPhase: (phase: Phase) => void;
@@ -46,6 +47,7 @@ export interface UseLotteryReturn {
     // 動態資料更新
     updateEmployees: (employees: Employee[]) => void;
     updatePrizes: (prizes: Prize[]) => void;
+    updateGeminiKey: (key: string) => void;
     clearStoredData: () => void;
 }
 
@@ -64,6 +66,7 @@ export const useLottery = (): UseLotteryReturn => {
     const [aiCommentary, setAiCommentary] = useState('');
     const [isAiLoading, setIsAiLoading] = useState(false);
     const [soundEnabled, setSoundEnabled] = useState(true);
+    const [geminiKey, setGeminiKey] = useState('');
 
     const rollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -100,6 +103,13 @@ export const useLottery = (): UseLotteryReturn => {
             const savedBGM = await loadBGMFile();
             if (savedBGM) {
                 soundManager.setBGM(savedBGM);
+            }
+
+            // 載入 Gemini Key
+            const savedKey = loadGeminiKey();
+            if (savedKey) {
+                setGeminiKey(savedKey);
+                setGeminiApiKey(savedKey);
             }
         };
         loadData();
@@ -359,6 +369,7 @@ export const useLottery = (): UseLotteryReturn => {
         aiCommentary,
         isAiLoading,
         soundEnabled,
+        geminiKey,
         setPhase,
         setSoundEnabled: (enabled: boolean) => {
             setSoundEnabled(enabled);
@@ -374,6 +385,11 @@ export const useLottery = (): UseLotteryReturn => {
         generateWinnerAI,
         updateEmployees,
         updatePrizes,
+        updateGeminiKey: (key: string) => {
+            setGeminiKey(key);
+            saveGeminiKey(key);
+            setGeminiApiKey(key);
+        },
         clearStoredData,
     };
 };

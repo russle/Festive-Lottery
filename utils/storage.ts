@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
     PRIZES: 'festive_lottery_prizes',
     WINNERS: 'festive_lottery_winners',
     CONFIG: 'festive_lottery_config',
+    GEMINI_KEY: 'festive_lottery_gemini_key',
 };
 
 /**
@@ -102,4 +103,17 @@ export const clearWinners = (): void => {
 export const hasStoredData = (): boolean => {
     return !!(localStorage.getItem(STORAGE_KEYS.EMPLOYEES) ||
         localStorage.getItem(STORAGE_KEYS.PRIZES));
+};
+/**
+ * 儲存 Gemini API Key
+ */
+export const saveGeminiKey = (key: string): void => {
+    localStorage.setItem(STORAGE_KEYS.GEMINI_KEY, key);
+};
+
+/**
+ * 載入 Gemini API Key
+ */
+export const loadGeminiKey = (): string | null => {
+    return localStorage.getItem(STORAGE_KEYS.GEMINI_KEY);
 };

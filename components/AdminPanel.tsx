@@ -1,6 +1,6 @@
 // 管理面板元件
 import React, { useState, useEffect } from 'react';
-import { X, Download, Trash2, Check, AlertTriangle, Music, Play, Pause, Volume2 } from 'lucide-react';
+import { X, Download, Trash2, Check, AlertTriangle, Music, Play, Pause, Volume2, Settings as SettingsIcon, ExternalLink } from 'lucide-react';
 import type { Employee, Prize, Winner } from '../types';
 import { FileUploader } from './FileUploader';
 import { DataPreview } from './DataPreview';
@@ -23,6 +23,8 @@ interface AdminPanelProps {
     winners: Winner[];
     onUpdateEmployees: (employees: Employee[]) => void;
     onUpdatePrizes: (prizes: Prize[]) => void;
+    geminiKey: string;
+    onUpdateGeminiKey: (key: string) => void;
     onResetAll: () => void;
     onClose: () => void;
 }
@@ -33,15 +35,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     winners,
     onUpdateEmployees,
     onUpdatePrizes,
+    geminiKey,
+    onUpdateGeminiKey,
     onResetAll,
     onClose,
 }) => {
     const [pendingEmployees, setPendingEmployees] = useState<Employee[] | null>(null);
     const [pendingPrizes, setPendingPrizes] = useState<Prize[] | null>(null);
     const [errors, setErrors] = useState<string[]>([]);
-    const [activeTab, setActiveTab] = useState<'employees' | 'prizes' | 'winners' | 'bgm'>('employees');
+    const [activeTab, setActiveTab] = useState<'employees' | 'prizes' | 'winners' | 'bgm' | 'settings'>('employees');
 
-    const switchTab = (tab: 'employees' | 'prizes' | 'winners' | 'bgm') => {
+    const switchTab = (tab: 'employees' | 'prizes' | 'winners' | 'bgm' | 'settings') => {
         soundManager.play('click');
         setActiveTab(tab);
     };
@@ -234,10 +238,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     >
                         🎵 背景音樂
                     </button>
+                    <button
+                        onClick={() => switchTab('settings')}
+                        className={`flex-1 py-3 text-center font-medium transition-colors ${activeTab === 'settings'
+                            ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/10'
+                            : 'text-amber-400/50 hover:text-amber-300'
+                            }`}
+                    >
+                        ⚙️ 系統設定
+                    </button>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
                     {/* Error Messages */}
                     {errors.length > 0 && (
                         <div className="bg-red-900/30 border border-red-500/50 rounded-xl p-4">
@@ -453,6 +466,63 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {activeTab === 'settings' && (
+                        <div className="space-y-8">
+                            <section className="space-y-4">
+                                <div className="flex items-center gap-2 text-amber-300 font-bold border-b border-amber-500/20 pb-2">
+                                    <SettingsIcon size={20} />
+                                    <h3>AI 吉祥話設定 (Google Gemini)</h3>
+                                </div>
+                                <p className="text-sm text-amber-200/60 leading-relaxed">
+                                    啟用後可在抽獎前生成獎項介紹，抽中後生成個人祝賀詞。需提供有效的 Google Gemini API Key。
+                                </p>
+                                <div className="space-y-2">
+                                    <label className="text-xs text-amber-400/80">Gemini API Key</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="password"
+                                            value={geminiKey}
+                                            onChange={(e) => onUpdateGeminiKey(e.target.value)}
+                                            placeholder="在此輸入 API Key (例如：AIza...)"
+                                            className="flex-1 bg-black/40 border border-amber-500/30 rounded-lg px-4 py-2 text-amber-100 placeholder:text-amber-900/50 focus:outline-none focus:border-amber-400 transition-colors"
+                                        />
+                                        <a
+                                            href="https://aistudio.google.com/app/apikey"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-1 text-xs text-amber-400/60 hover:text-amber-300 transition-colors"
+                                        >
+                                            <ExternalLink size={14} />
+                                            獲取金鑰
+                                        </a>
+                                    </div>
+                                    <p className="text-[10px] text-amber-600">金鑰將僅儲存於您的瀏覽器本地 (LocalStorage)</p>
+                                </div>
+                            </section>
+
+                            <section className="space-y-4 pt-4 border-t border-amber-500/10">
+                                <div className="flex items-center gap-2 text-red-400 font-bold">
+                                    <Trash2 size={20} />
+                                    <h3>危險區域</h3>
+                                </div>
+                                <div className="p-4 bg-red-900/10 border border-red-500/20 rounded-xl space-y-3">
+                                    <p className="text-xs text-red-300/70">此動作將清除所有已儲存的員工、獎項、中獎名單與 BGM 設定，並恢復為預設值。</p>
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('確定要清除所有資料並重置系統嗎？此動作無法復原。')) {
+                                                onResetAll();
+                                                onClose();
+                                            }
+                                        }}
+                                        className="bg-red-900/40 hover:bg-red-800 text-red-200 text-xs px-4 py-2 rounded border border-red-500/30 transition-colors"
+                                    >
+                                        重置系統資料
+                                    </button>
+                                </div>
+                            </section>
                         </div>
                     )}
                 </div>
