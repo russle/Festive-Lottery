@@ -1,4 +1,3 @@
-// 數據解析工具 (支援 CSV 與 Excel)
 import * as XLSX from 'xlsx';
 import type { Employee, Prize, PrizeType } from '../types';
 
@@ -167,3 +166,45 @@ export const generateSamplePrizesCSV = (): string => {
 4,iPhone 16 Pro,📱,2,single,1
 5,吉祥如意 - 歐洲雙人遊,✈️,1,single,1`;
 };
+
+/**
+ * 將資料導出為 Excel Buffer
+ */
+export const exportToExcelBuffer = (data: any[][]): ArrayBuffer => {
+    const worksheet = XLSX.utils.aoa_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+    const buffer = XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
+    return buffer;
+};
+
+/**
+ * 生成員工範例 Excel Buffer
+ */
+export const generateSampleEmployeesExcel = (): ArrayBuffer => {
+    const data = [
+        ['員工編號', '姓名', '部門'],
+        ['888001', '王小明', '財富部'],
+        ['888002', '李小華', '聚寶部'],
+        ['888003', '張大文', '招財部'],
+        ['888004', '陳美玲', '納福部'],
+        ['888005', '林志遠', '興旺部'],
+    ];
+    return exportToExcelBuffer(data);
+};
+
+/**
+ * 生成獎項範例 Excel Buffer
+ */
+export const generateSamplePrizesExcel = (): ArrayBuffer => {
+    const data = [
+        ['id', 'name', 'icon', 'count', 'type', 'countPerRound'],
+        [1, '開運紅包 - SOGO 禮券', '🧧', 10, 'batch', 5],
+        [2, 'Apple Watch Ultra 2', '⌚', 5, 'batch', 1],
+        [3, 'Dyson 吹風機', '🎐', 3, 'single', 1],
+        [4, 'iPhone 16 Pro', '📱', 2, 'single', 1],
+        [5, '吉祥如意 - 歐洲雙人遊', '✈️', 1, 'single', 1],
+    ];
+    return exportToExcelBuffer(data);
+};
+

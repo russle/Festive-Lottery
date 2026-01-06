@@ -9,8 +9,9 @@ import {
     parsePrizes,
     validateEmployees,
     validatePrizes,
-    generateSampleEmployeesCSV,
-    generateSamplePrizesCSV,
+    generateSampleEmployeesExcel,
+    generateSamplePrizesExcel,
+    exportToExcelBuffer,
 } from '../utils/dataParser';
 
 import { soundManager } from '../utils/sound';
@@ -148,14 +149,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     };
 
     const downloadSample = (type: 'employees' | 'prizes') => {
-        const content = type === 'employees'
-            ? generateSampleEmployeesCSV()
-            : generateSamplePrizesCSV();
-        const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8' });
+        const buffer = type === 'employees'
+            ? generateSampleEmployeesExcel()
+            : generateSamplePrizesExcel();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = type === 'employees' ? 'employees_sample.csv' : 'prizes_sample.csv';
+        a.download = type === 'employees' ? 'employees_sample.xlsx' : 'prizes_sample.xlsx';
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -163,19 +164,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const exportWinners = () => {
         if (winners.length === 0) return;
 
-        const headers = '獎項編號,獎項名稱,員工編號,姓名,部門,獲獎時間\n';
+        const headers = ['獎項編號', '獎項名稱', '員工編號', '姓名', '部門', '獲獎時間'];
         const rows = winners.map(w => {
             const prize = currentPrizes.find(p => p.id === w.prizeId);
             const time = new Date(w.timestamp).toLocaleString();
-            return `${w.prizeId},${prize?.name || '未知'},${w.employee.id},${w.employee.name},${w.employee.dept},${time}`;
-        }).join('\n');
+            return [w.prizeId, prize?.name || '未知', w.employee.id, w.employee.name, w.employee.dept, time];
+        });
 
-        const content = headers + rows;
-        const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8' });
+        const data = [headers, ...rows];
+        const buffer = exportToExcelBuffer(data);
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `winners_report_${new Date().getTime()}.csv`;
+        a.download = `winners_report_${new Date().getTime()}.xlsx`;
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -266,7 +268,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 className="flex items-center gap-2 text-amber-400/60 hover:text-amber-300 text-sm"
                             >
                                 <Download size={14} />
-                                下載範例 CSV
+                                下載範例 Excel
                             </button>
 
                             {/* Pending Preview */}
@@ -305,7 +307,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 className="flex items-center gap-2 text-amber-400/60 hover:text-amber-300 text-sm"
                             >
                                 <Download size={14} />
-                                下載範例 CSV
+                                下載範例 Excel
                             </button>
 
                             {/* Pending Preview */}
@@ -336,10 +338,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 <button
                                     onClick={exportWinners}
                                     disabled={winners.length === 0}
-                                    className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+                                    className="flex items-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-4 py-2 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <Download size={14} />
-                                    導出中獎名單 (CSV)
+                                    <Download size={16} />
+                                    導出 Excel 報表
                                 </button>
                             </div>
 
