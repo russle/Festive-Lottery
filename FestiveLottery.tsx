@@ -73,8 +73,8 @@ export default function FestiveLottery() {
           winners={lottery.winners}
           onUpdateEmployees={lottery.updateEmployees}
           onUpdatePrizes={lottery.updatePrizes}
-          geminiKey={lottery.geminiKey}
-          onUpdateGeminiKey={lottery.updateGeminiKey}
+          aiConfig={lottery.aiConfig}
+          onUpdateAIConfig={lottery.updateAIConfig}
           onResetAll={lottery.clearStoredData}
           onClose={() => setShowAdmin(false)}
         />

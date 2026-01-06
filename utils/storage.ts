@@ -1,12 +1,12 @@
 // 本地儲存工具
-import type { Employee, Prize, Winner } from '../types';
+import type { Employee, Prize, Winner, AIConfig } from '../types';
 
 const STORAGE_KEYS = {
     EMPLOYEES: 'festive_lottery_employees',
     PRIZES: 'festive_lottery_prizes',
     WINNERS: 'festive_lottery_winners',
     CONFIG: 'festive_lottery_config',
-    GEMINI_KEY: 'festive_lottery_gemini_key',
+    AI_CONFIG: 'festive_lottery_ai_config',
 };
 
 /**
@@ -105,15 +105,21 @@ export const hasStoredData = (): boolean => {
         localStorage.getItem(STORAGE_KEYS.PRIZES));
 };
 /**
- * 儲存 Gemini API Key
+ * 儲存 AI 設定
  */
-export const saveGeminiKey = (key: string): void => {
-    localStorage.setItem(STORAGE_KEYS.GEMINI_KEY, key);
+export const saveAIConfig = (config: AIConfig): void => {
+    localStorage.setItem(STORAGE_KEYS.AI_CONFIG, JSON.stringify(config));
 };
 
 /**
- * 載入 Gemini API Key
+ * 載入 AI 設定
  */
-export const loadGeminiKey = (): string | null => {
-    return localStorage.getItem(STORAGE_KEYS.GEMINI_KEY);
+export const loadAIConfig = (): AIConfig | null => {
+    try {
+        const data = localStorage.getItem(STORAGE_KEYS.AI_CONFIG);
+        return data ? JSON.parse(data) : null;
+    } catch {
+        return null;
+    }
 };
+

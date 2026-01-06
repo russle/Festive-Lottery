@@ -1,7 +1,7 @@
 // 管理面板元件
 import React, { useState, useEffect } from 'react';
 import { X, Download, Trash2, Check, AlertTriangle, Music, Play, Pause, Volume2, Settings as SettingsIcon, ExternalLink } from 'lucide-react';
-import type { Employee, Prize, Winner } from '../types';
+import type { Employee, Prize, Winner, AIConfig } from '../types';
 import { FileUploader } from './FileUploader';
 import { DataPreview } from './DataPreview';
 import {
@@ -23,8 +23,8 @@ interface AdminPanelProps {
     winners: Winner[];
     onUpdateEmployees: (employees: Employee[]) => void;
     onUpdatePrizes: (prizes: Prize[]) => void;
-    geminiKey: string;
-    onUpdateGeminiKey: (key: string) => void;
+    aiConfig: AIConfig;
+    onUpdateAIConfig: (config: AIConfig) => void;
     onResetAll: () => void;
     onClose: () => void;
 }
@@ -35,8 +35,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     winners,
     onUpdateEmployees,
     onUpdatePrizes,
-    geminiKey,
-    onUpdateGeminiKey,
+    aiConfig,
+    onUpdateAIConfig,
     onResetAll,
     onClose,
 }) => {
@@ -479,28 +479,76 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 <p className="text-sm text-amber-200/60 leading-relaxed">
                                     啟用後可在抽獎前生成獎項介紹，抽中後生成個人祝賀詞。需提供有效的 Google Gemini API Key。
                                 </p>
-                                <div className="space-y-2">
-                                    <label className="text-xs text-amber-400/80">Gemini API Key</label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="password"
-                                            value={geminiKey}
-                                            onChange={(e) => onUpdateGeminiKey(e.target.value)}
-                                            placeholder="在此輸入 API Key (例如：AIza...)"
-                                            className="flex-1 bg-black/40 border border-amber-500/30 rounded-lg px-4 py-2 text-amber-100 placeholder:text-amber-900/50 focus:outline-none focus:border-amber-400 transition-colors"
-                                        />
-                                        <a
-                                            href="https://aistudio.google.com/app/apikey"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-1 text-xs text-amber-400/60 hover:text-amber-300 transition-colors"
+                                <div className="space-y-4">
+                                    <div className="flex bg-black/40 p-1 rounded-lg border border-amber-500/20">
+                                        <button
+                                            onClick={() => onUpdateAIConfig({ ...aiConfig, provider: 'gemini' })}
+                                            className={`flex-1 py-1 text-xs rounded-md transition-all ${aiConfig.provider === 'gemini'
+                                                ? 'bg-amber-500/20 text-amber-300 shadow-sm'
+                                                : 'text-amber-500/40 hover:text-amber-400'
+                                                }`}
                                         >
-                                            <ExternalLink size={14} />
-                                            獲取金鑰
-                                        </a>
+                                            Google Gemini
+                                        </button>
+                                        <button
+                                            onClick={() => onUpdateAIConfig({ ...aiConfig, provider: 'openai' })}
+                                            className={`flex-1 py-1 text-xs rounded-md transition-all ${aiConfig.provider === 'openai'
+                                                ? 'bg-amber-500/20 text-amber-300 shadow-sm'
+                                                : 'text-amber-500/40 hover:text-amber-400'
+                                                }`}
+                                        >
+                                            OpenAI
+                                        </button>
                                     </div>
-                                    <p className="text-[10px] text-amber-600">金鑰將僅儲存於您的瀏覽器本地 (LocalStorage)</p>
+
+                                    {aiConfig.provider === 'gemini' ? (
+                                        <div className="space-y-2">
+                                            <label className="text-xs text-amber-400/80 font-medium">Gemini API Key</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="password"
+                                                    value={aiConfig.geminiKey}
+                                                    onChange={(e) => onUpdateAIConfig({ ...aiConfig, geminiKey: e.target.value })}
+                                                    placeholder="在此輸入 Gemini API Key"
+                                                    className="flex-1 bg-black/40 border border-amber-500/30 rounded-lg px-4 py-2 text-amber-100 placeholder:text-amber-900/40 focus:outline-none focus:border-amber-400 transition-colors"
+                                                />
+                                                <a
+                                                    href="https://aistudio.google.com/app/apikey"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-1 text-xs text-amber-400/60 hover:text-amber-300 transition-colors whitespace-nowrap"
+                                                >
+                                                    <ExternalLink size={14} />
+                                                    獲取
+                                                </a>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            <label className="text-xs text-amber-400/80 font-medium">OpenAI API Key</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="password"
+                                                    value={aiConfig.openaiKey}
+                                                    onChange={(e) => onUpdateAIConfig({ ...aiConfig, openaiKey: e.target.value })}
+                                                    placeholder="在此輸入 OpenAI API Key (sk-...)"
+                                                    className="flex-1 bg-black/40 border border-amber-500/30 rounded-lg px-4 py-2 text-amber-100 placeholder:text-amber-900/40 focus:outline-none focus:border-amber-400 transition-colors"
+                                                />
+                                                <a
+                                                    href="https://platform.openai.com/api-keys"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-1 text-xs text-amber-400/60 hover:text-amber-300 transition-colors whitespace-nowrap"
+                                                >
+                                                    <ExternalLink size={14} />
+                                                    獲取
+                                                </a>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <p className="text-[10px] text-amber-600">金鑰僅儲存於本地瀏覽器。OpenAI 模型預設使用 gpt-4o-mini。</p>
                                 </div>
+
                             </section>
 
                             <section className="space-y-4 pt-4 border-t border-amber-500/10">

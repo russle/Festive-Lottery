@@ -62,3 +62,13 @@ export interface LotteryConfig {
     rollingIntervalMs: number;
     batchRevealDelayMs: number;
 }
+
+/** AI 設定 */
+export type AIProvider = 'gemini' | 'openai';
+
+export interface AIConfig {
+    provider: AIProvider;
+    geminiKey: string;
+    openaiKey: string;
+}
+
