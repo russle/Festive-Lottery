@@ -1,6 +1,6 @@
 // 管理面板元件
 import React, { useState } from 'react';
-import { X, Download, Trash2, Check, AlertTriangle } from 'lucide-react';
+import { X, Download, Trash2, Check, AlertTriangle, Music, Play, Pause, Volume2 } from 'lucide-react';
 import type { Employee, Prize, Winner } from '../types';
 import { FileUploader } from './FileUploader';
 import { DataPreview } from './DataPreview';
@@ -37,11 +37,39 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const [pendingEmployees, setPendingEmployees] = useState<Employee[] | null>(null);
     const [pendingPrizes, setPendingPrizes] = useState<Prize[] | null>(null);
     const [errors, setErrors] = useState<string[]>([]);
-    const [activeTab, setActiveTab] = useState<'employees' | 'prizes' | 'winners'>('employees');
+    const [activeTab, setActiveTab] = useState<'employees' | 'prizes' | 'winners' | 'bgm'>('employees');
+    const [bgmFileName, setBgmFileName] = useState<string | null>(null);
+    const [isBgmPlaying, setIsBgmPlaying] = useState(false);
+    const [volume, setVolume] = useState(soundManager.getBGMVolume() * 100);
 
-    const switchTab = (tab: 'employees' | 'prizes' | 'winners') => {
+    const switchTab = (tab: 'employees' | 'prizes' | 'winners' | 'bgm') => {
         soundManager.play('click');
         setActiveTab(tab);
+    };
+
+    const handleBGMFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            soundManager.setBGM(file);
+            setBgmFileName(file.name);
+            setIsBgmPlaying(true);
+            soundManager.playBGM();
+        }
+    };
+
+    const toggleBGM = () => {
+        if (isBgmPlaying) {
+            soundManager.pauseBGM();
+        } else {
+            soundManager.playBGM();
+        }
+        setIsBgmPlaying(!isBgmPlaying);
+    };
+
+    const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = parseInt(e.target.value);
+        setVolume(val);
+        soundManager.setBGMVolume(val / 100);
     };
 
 
@@ -172,6 +200,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             }`}
                     >
                         🏆 中獎名單 ({winners.length})
+                    </button>
+                    <button
+                        onClick={() => switchTab('bgm')}
+                        className={`flex-1 py-3 text-center font-medium transition-colors ${activeTab === 'bgm'
+                            ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/10'
+                            : 'text-amber-400/50 hover:text-amber-300'
+                            }`}
+                    >
+                        🎵 背景音樂
                     </button>
                 </div>
 
@@ -319,6 +356,77 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             ) : (
                                 <div className="text-center py-20 bg-black/20 rounded-2xl border border-dashed border-amber-500/10">
                                     <p className="text-amber-500/30">尚無中獎紀錄</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {activeTab === 'bgm' && (
+                        <div className="space-y-8 py-4">
+                            <div className="bg-black/30 border border-amber-500/20 rounded-2xl p-8 text-center space-y-6">
+                                <div className="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto ring-4 ring-amber-500/20">
+                                    <Music className="text-amber-400 w-10 h-10" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-bold text-amber-300">背景音樂設定</h3>
+                                    <p className="text-amber-200/50 text-sm">上傳 MP3 或音訊檔案作為抽獎活動的背景音樂</p>
+                                </div>
+
+                                <div className="flex flex-col items-center gap-4">
+                                    <input
+                                        type="file"
+                                        id="bgm-upload"
+                                        accept="audio/*"
+                                        className="hidden"
+                                        onChange={handleBGMFile}
+                                    />
+                                    <label
+                                        htmlFor="bgm-upload"
+                                        className="px-8 py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl cursor-pointer transition-all shadow-lg hover:shadow-amber-500/20"
+                                    >
+                                        選擇音樂檔案
+                                    </label>
+                                    {bgmFileName && (
+                                        <p className="text-green-400 flex items-center gap-2 text-sm">
+                                            <Check size={14} /> 已載入: {bgmFileName}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {bgmFileName && (
+                                <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-6 space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <button
+                                                onClick={toggleBGM}
+                                                className="w-12 h-12 bg-amber-400 text-amber-900 rounded-full flex items-center justify-center hover:scale-105 transition-transform"
+                                            >
+                                                {isBgmPlaying ? <Pause size={24} /> : <Play size={24} fill="currentColor" />}
+                                            </button>
+                                            <div>
+                                                <p className="text-amber-200 font-medium">現正播放</p>
+                                                <p className="text-amber-500/70 text-sm">{bgmFileName}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between text-sm text-amber-200/60">
+                                            <div className="flex items-center gap-2">
+                                                <Volume2 size={16} />
+                                                <span>音量調節</span>
+                                            </div>
+                                            <span>{volume}%</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="100"
+                                            value={volume}
+                                            onChange={handleVolumeChange}
+                                            className="w-full h-2 bg-black/50 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                        />
+                                    </div>
                                 </div>
                             )}
                         </div>

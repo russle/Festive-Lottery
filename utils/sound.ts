@@ -5,7 +5,9 @@ type SoundType = keyof typeof SOUND_ASSETS;
 
 class SoundManager {
     private audios: Partial<Record<SoundType, HTMLAudioElement>> = {};
+    private bgm: HTMLAudioElement | null = null;
     private enabled: boolean = true;
+    private bgmVolume: number = 0.5;
 
     constructor() {
         // 預加載音效
@@ -22,7 +24,48 @@ class SoundManager {
         this.enabled = enabled;
         if (!enabled) {
             this.stopAll();
+            this.pauseBGM();
+        } else if (this.bgm) {
+            // 如果啟用了且有 BGM，可以考慮是否自動恢復，這裡交給 UI 控制
         }
+    }
+
+    /** 背景音樂控制 */
+    setBGM(source: string | File) {
+        if (this.bgm) {
+            this.bgm.pause();
+            this.bgm = null;
+        }
+
+        const url = typeof source === 'string' ? source : URL.createObjectURL(source);
+        this.bgm = new Audio(url);
+        this.bgm.loop = true;
+        this.bgm.volume = this.bgmVolume;
+    }
+
+    playBGM() {
+        if (!this.enabled || !this.bgm) return;
+        this.bgm.play().catch(err => console.warn('BGM play failed:', err));
+    }
+
+    pauseBGM() {
+        if (this.bgm) this.bgm.pause();
+    }
+
+    stopBGM() {
+        if (this.bgm) {
+            this.bgm.pause();
+            this.bgm.currentTime = 0;
+        }
+    }
+
+    setBGMVolume(volume: number) {
+        this.bgmVolume = volume;
+        if (this.bgm) this.bgm.volume = volume;
+    }
+
+    getBGMVolume() {
+        return this.bgmVolume;
     }
 
     play(type: SoundType, loop: boolean = false) {
