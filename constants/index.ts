@@ -12,11 +12,11 @@ export const DEFAULT_CONFIG: LotteryConfig = {
 
 /** 預設獎項列表 */
 export const DEFAULT_PRIZES: Prize[] = [
-    { id: 1, name: '開運紅包 - SOGO 禮券', icon: '🧧', count: 10, type: 'batch' },
-    { id: 2, name: '富貴手環 - Apple Watch', icon: '⌚', count: 5, type: 'batch' },
-    { id: 3, name: '春風得意 - Dyson', icon: '🎐', count: 3, type: 'single' },
-    { id: 4, name: '吉星高照 - iPhone 16 Pro', icon: '📱', count: 1, type: 'single' },
-    { id: 5, name: '環遊世界 - 歐洲雙人遊', icon: '✈️', count: 1, type: 'single' },
+    { id: 1, name: '開運紅包 - SOGO 禮券', icon: '🧧', count: 10, type: 'batch', countPerRound: 5 },
+    { id: 2, name: '富貴手環 - Apple Watch', icon: '⌚', count: 5, type: 'batch', countPerRound: 1 },
+    { id: 3, name: '春風得意 - Dyson', icon: '🎐', count: 3, type: 'single', countPerRound: 1 },
+    { id: 4, name: '吉星高照 - iPhone 16 Pro', icon: '📱', count: 2, type: 'single', countPerRound: 1 },
+    { id: 5, name: '環遊世界 - 歐洲雙人遊', icon: '✈️', count: 1, type: 'single', countPerRound: 1 },
 ];
 
 /** 部門列表 */

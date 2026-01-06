@@ -294,7 +294,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <>
                             <FileUploader
                                 label="上傳獎品清單"
-                                description="支援 CSV 或 Excel (.xlsx, .xls) 格式，需包含獎品名稱"
+                                description="支援 CSV 或 Excel (.xlsx, .xls) 格式，需包含獎品名稱，可選填數量與每輪抽幾人"
                                 onFileContent={handlePrizesFile}
                                 onError={(err) => setErrors([err])}
                             />

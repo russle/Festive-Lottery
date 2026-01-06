@@ -29,6 +29,7 @@ export interface Prize {
     icon: string;
     count: number;
     type: PrizeType;
+    countPerRound?: number; // 每次抽幾個人
 }
 
 /** 中獎紀錄 */

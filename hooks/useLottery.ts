@@ -153,12 +153,23 @@ export const useLottery = (): UseLotteryReturn => {
         return employees.filter(e => !winnerIds.has(e.id));
     }, [winners, employees]);
 
+    const getCountToDraw = useCallback(() => {
+        if (!currentPrize) return 0;
+        const prizeWinners = winners.filter(w => w.prizeId === currentPrize.id);
+        const remaining = currentPrize.count - prizeWinners.length;
+        if (remaining <= 0) return 0;
+
+        const target = currentPrize.countPerRound || (currentPrize.type === 'batch' ? currentPrize.count : 1);
+        return Math.min(target, remaining);
+    }, [currentPrize, winners]);
+
     const startCountdown = useCallback(() => {
         if (phase !== 'standby' && phase !== 'join' && phase !== 'completed') return;
 
         const eligible = getEligibleEmployees();
-        if (eligible.length < (currentPrize?.count || 1)) {
-            console.warn('候選人不足！');
+        const countToDraw = getCountToDraw();
+        if (eligible.length < countToDraw || countToDraw === 0) {
+            console.warn('候選人不足或獎項已抽完！');
             return;
         }
 
@@ -216,7 +227,7 @@ export const useLottery = (): UseLotteryReturn => {
         if (rollingIntervalRef.current) clearInterval(rollingIntervalRef.current);
 
         const eligible = getEligibleEmployees();
-        const countToDraw = currentPrize.type === 'batch' ? currentPrize.count : 1;
+        const countToDraw = getCountToDraw();
         const newWinners = [...eligible].sort(() => 0.5 - Math.random()).slice(0, countToDraw);
 
         const winnerRecords: Winner[] = newWinners.map(w => ({
@@ -227,7 +238,7 @@ export const useLottery = (): UseLotteryReturn => {
 
         setWinners(prev => [...prev, ...winnerRecords]);
 
-        if (currentPrize.type === 'batch') {
+        if (countToDraw > 1) {
             setCurrentBatchWinners(newWinners);
             setBatchRevealedCount(0);
             setPhase('batch_reveal');
@@ -239,13 +250,24 @@ export const useLottery = (): UseLotteryReturn => {
 
     const nextPrize = useCallback(() => {
         soundManager.play('click');
+
+        // 檢查當前獎項是否還有剩餘
+        const prizeWinners = winners.filter(w => w.prizeId === currentPrize?.id);
+        const isCurrentFinished = currentPrize && prizeWinners.length >= currentPrize.count;
+
+        if (!isCurrentFinished) {
+            // 還有剩餘，停留在當前獎項進行下一輪
+            setPhase('standby');
+            return;
+        }
+
         if (currentPrizeIndex < prizes.length - 1) {
             setCurrentPrizeIndex(prev => prev + 1);
             setPhase('standby');
         } else {
             setPhase('wall');
         }
-    }, [currentPrizeIndex, prizes.length]);
+    }, [currentPrizeIndex, prizes.length, winners, currentPrize]);
 
     const resetAll = useCallback(() => {
         setCurrentPrizeIndex(0);

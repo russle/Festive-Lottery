@@ -43,8 +43,10 @@ npm run dev
 | --- | --- |
 | name | 獎品名稱 (必填) |
 | icon | Emoji 圖示 (預設 🎁) |
-| count | 數量 (預設 1) |
+| count | 總數量 (預設 1) |
 | type | 類型 (`single` 或 `batch`) |
+| countPerRound | 每輪抽取人數 (預設與總量相同) |
+
 
 ## 🛠 技術棧
 
@@ -56,4 +58,5 @@ npm run dev
 
 ## 📝 授權
 
-此專案僅供開發展示與學習使用。
+此專案基於 **Apache License 2.0** 授權。詳細內容請參閱專案授權條款。
+

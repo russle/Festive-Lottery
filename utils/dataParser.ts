@@ -87,6 +87,7 @@ export const parsePrizes = (content: string | ArrayBuffer): Prize[] => {
     const iconIndex = headers.findIndex(h => h === 'icon' || h === '圖示' || h === 'emoji');
     const countIndex = headers.findIndex(h => h === 'count' || h === '數量' || h === '份數');
     const typeIndex = headers.findIndex(h => h === 'type' || h === '類型' || h === '抽獎方式');
+    const countPerRoundIndex = headers.findIndex(h => h === 'countperround' || h === '每輪數量' || h === '批量數量');
 
     if (nameIndex === -1) {
         throw new Error('解析錯誤：找不到必要欄位 (獎品名稱/Name)');
@@ -101,12 +102,16 @@ export const parsePrizes = (content: string | ArrayBuffer): Prize[] => {
                 ? 'batch'
                 : 'single';
 
+            const rawCountPerRound = countPerRoundIndex !== -1 ? parseInt(String(row[countPerRoundIndex] || '')) : NaN;
+            const countPerRound = !isNaN(rawCountPerRound) ? rawCountPerRound : (type === 'batch' ? count : 1);
+
             return {
                 id: idIndex !== -1 ? parseInt(String(row[idIndex] || '0')) || (index + 1) : index + 1,
                 name: row[nameIndex],
                 icon: iconIndex !== -1 ? row[iconIndex] || '🎁' : '🎁',
                 count,
                 type,
+                countPerRound: Math.min(countPerRound, count),
             };
         });
 };
@@ -155,10 +160,10 @@ export const generateSampleEmployeesCSV = (): string => {
 };
 
 export const generateSamplePrizesCSV = (): string => {
-    return `id,name,icon,count,type
-1,SOGO禮券,🧧,10,batch
-2,Apple Watch,⌚,5,batch
-3,Dyson 吹風機,🎐,3,single
-4,iPhone 16 Pro,📱,1,single
-5,歐洲雙人遊,✈️,1,single`;
+    return `id,name,icon,count,type,countPerRound
+1,開運紅包 - SOGO 禮券,🧧,10,batch,5
+2,Apple Watch Ultra 2,⌚,5,batch,1
+3,Dyson 吹風機,🎐,3,single,1
+4,iPhone 16 Pro,📱,2,single,1
+5,吉祥如意 - 歐洲雙人遊,✈️,1,single,1`;
 };
