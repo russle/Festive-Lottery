@@ -6,12 +6,12 @@ interface FileUploaderProps {
     accept?: string;
     label: string;
     description?: string;
-    onFileContent: (content: string, fileName: string) => void;
+    onFileContent: (content: string | ArrayBuffer, fileName: string) => void;
     onError?: (error: string) => void;
 }
 
 export const FileUploader: React.FC<FileUploaderProps> = ({
-    accept = '.csv',
+    accept = '.csv,.xlsx,.xls',
     label,
     description,
     onFileContent,
@@ -23,24 +23,34 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
     const handleFile = (file: File) => {
-        if (!file.name.endsWith('.csv')) {
+        const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+        const isCSV = file.name.endsWith('.csv');
+
+        if (!isExcel && !isCSV) {
             setStatus('error');
-            onError?.('請上傳 CSV 格式檔案');
+            onError?.('請上傳 CSV 或 Excel 格式檔案');
             return;
         }
 
         const reader = new FileReader();
         reader.onload = (e) => {
-            const content = e.target?.result as string;
-            setFileName(file.name);
-            setStatus('success');
-            onFileContent(content, file.name);
+            const content = e.target?.result;
+            if (content) {
+                setFileName(file.name);
+                setStatus('success');
+                onFileContent(content, file.name);
+            }
         };
         reader.onerror = () => {
             setStatus('error');
             onError?.('讀取檔案失敗');
         };
-        reader.readAsText(file, 'UTF-8');
+
+        if (isExcel) {
+            reader.readAsArrayBuffer(file);
+        } else {
+            reader.readAsText(file, 'UTF-8');
+        }
     };
 
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {

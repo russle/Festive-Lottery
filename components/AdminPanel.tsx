@@ -5,13 +5,13 @@ import type { Employee, Prize, Winner } from '../types';
 import { FileUploader } from './FileUploader';
 import { DataPreview } from './DataPreview';
 import {
-    parseEmployeesCSV,
-    parsePrizesCSV,
+    parseEmployees,
+    parsePrizes,
     validateEmployees,
     validatePrizes,
     generateSampleEmployeesCSV,
     generateSamplePrizesCSV,
-} from '../utils/csvParser';
+} from '../utils/dataParser';
 
 interface AdminPanelProps {
     currentEmployees: Employee[];
@@ -37,9 +37,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const [errors, setErrors] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState<'employees' | 'prizes' | 'winners'>('employees');
 
-    const handleEmployeesFile = (content: string) => {
+    const handleEmployeesFile = (content: string | ArrayBuffer) => {
         try {
-            const employees = parseEmployeesCSV(content);
+            const employees = parseEmployees(content);
             const validation = validateEmployees(employees);
 
             if (!validation.valid) {
@@ -56,9 +56,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         }
     };
 
-    const handlePrizesFile = (content: string) => {
+    const handlePrizesFile = (content: string | ArrayBuffer) => {
         try {
-            const prizes = parsePrizesCSV(content);
+            const prizes = parsePrizes(content);
             const validation = validatePrizes(prizes);
 
             if (!validation.valid) {
@@ -188,7 +188,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <>
                             <FileUploader
                                 label="上傳員工清單"
-                                description="CSV 格式，需包含 id, name, dept 欄位"
+                                description="支援 CSV 或 Excel (.xlsx, .xls) 格式，需包含編號、姓名與部門欄位"
                                 onFileContent={handleEmployeesFile}
                                 onError={(err) => setErrors([err])}
                             />
@@ -227,7 +227,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <>
                             <FileUploader
                                 label="上傳獎品清單"
-                                description="CSV 格式，需包含 name 欄位，可選 id, icon, count, type"
+                                description="支援 CSV 或 Excel (.xlsx, .xls) 格式，需包含獎品名稱"
                                 onFileContent={handlePrizesFile}
                                 onError={(err) => setErrors([err])}
                             />

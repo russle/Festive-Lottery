@@ -1,4 +1,5 @@
-// CSV 解析工具
+// 數據解析工具 (支援 CSV 與 Excel)
+import * as XLSX from 'xlsx';
 import type { Employee, Prize, PrizeType } from '../types';
 
 /**
@@ -28,11 +29,26 @@ export const parseCSV = (content: string): string[][] => {
 };
 
 /**
- * 解析員工清單 CSV
- * 格式: id,name,dept
+ * 解析 Excel (ArrayBuffer) 為二維陣列
  */
-export const parseEmployeesCSV = (content: string): Employee[] => {
-    const rows = parseCSV(content);
+export const convertExcelToRows = (data: ArrayBuffer): string[][] => {
+    const workbook = XLSX.read(data, { type: 'array' });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    // 使用 header: 1 取得二維陣列
+    const rows = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
+    return rows.map(row => row.map(cell => String(cell || '').trim()));
+};
+
+/**
+ * 解析員工清單
+ * 支援 CSV (string) 或 Excel (ArrayBuffer)
+ */
+export const parseEmployees = (content: string | ArrayBuffer): Employee[] => {
+    const rows = typeof content === 'string'
+        ? parseCSV(content)
+        : convertExcelToRows(content);
+
     if (rows.length < 2) return [];
 
     // 取得標題列
@@ -42,7 +58,7 @@ export const parseEmployeesCSV = (content: string): Employee[] => {
     const deptIndex = headers.findIndex(h => h === 'dept' || h === 'department' || h === '部門');
 
     if (idIndex === -1 || nameIndex === -1) {
-        throw new Error('CSV 格式錯誤：找不到必要欄位 (id, name)');
+        throw new Error('解析錯誤：找不到必要欄位 (員工編號/ID, 姓名/Name)');
     }
 
     return rows.slice(1)
@@ -55,11 +71,14 @@ export const parseEmployeesCSV = (content: string): Employee[] => {
 };
 
 /**
- * 解析獎品清單 CSV
- * 格式: id,name,icon,count,type
+ * 解析獎品清單
+ * 支援 CSV (string) 或 Excel (ArrayBuffer)
  */
-export const parsePrizesCSV = (content: string): Prize[] => {
-    const rows = parseCSV(content);
+export const parsePrizes = (content: string | ArrayBuffer): Prize[] => {
+    const rows = typeof content === 'string'
+        ? parseCSV(content)
+        : convertExcelToRows(content);
+
     if (rows.length < 2) return [];
 
     const headers = rows[0].map(h => h.toLowerCase());
@@ -70,20 +89,20 @@ export const parsePrizesCSV = (content: string): Prize[] => {
     const typeIndex = headers.findIndex(h => h === 'type' || h === '類型' || h === '抽獎方式');
 
     if (nameIndex === -1) {
-        throw new Error('CSV 格式錯誤：找不到必要欄位 (name)');
+        throw new Error('解析錯誤：找不到必要欄位 (獎品名稱/Name)');
     }
 
     return rows.slice(1)
         .filter(row => row[nameIndex]) // 過濾空行
         .map((row, index) => {
-            const count = countIndex !== -1 ? parseInt(row[countIndex]) || 1 : 1;
-            const typeValue = typeIndex !== -1 ? row[typeIndex]?.toLowerCase() : '';
+            const count = countIndex !== -1 ? parseInt(String(row[countIndex] || '1')) || 1 : 1;
+            const typeValue = typeIndex !== -1 ? String(row[typeIndex] || '').toLowerCase() : '';
             const type: PrizeType = (typeValue === 'batch' || typeValue === '批量' || count > 1)
                 ? 'batch'
                 : 'single';
 
             return {
-                id: idIndex !== -1 ? parseInt(row[idIndex]) || (index + 1) : index + 1,
+                id: idIndex !== -1 ? parseInt(String(row[idIndex] || '0')) || (index + 1) : index + 1,
                 name: row[nameIndex],
                 icon: iconIndex !== -1 ? row[iconIndex] || '🎁' : '🎁',
                 count,
