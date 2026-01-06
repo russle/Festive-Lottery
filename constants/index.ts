@@ -46,3 +46,13 @@ export const QR_CONFIG = {
     joinUrl: 'https://example.com/join-event',
     checkUrl: 'https://example.com/check-result',
 };
+
+/** 音效資源 */
+export const SOUND_ASSETS = {
+    click: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
+    countdown: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
+    rolling: 'https://assets.mixkit.co/active_storage/sfx/2180/2180-preview.mp3',
+    win: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3',
+    join: 'https://assets.mixkit.co/active_storage/sfx/2437/2437-preview.mp3', // Pop sound
+};
+

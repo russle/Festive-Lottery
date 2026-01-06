@@ -13,6 +13,8 @@ import {
     generateSamplePrizesCSV,
 } from '../utils/dataParser';
 
+import { soundManager } from '../utils/sound';
+
 interface AdminPanelProps {
     currentEmployees: Employee[];
     currentPrizes: Prize[];
@@ -36,6 +38,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const [pendingPrizes, setPendingPrizes] = useState<Prize[] | null>(null);
     const [errors, setErrors] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState<'employees' | 'prizes' | 'winners'>('employees');
+
+    const switchTab = (tab: 'employees' | 'prizes' | 'winners') => {
+        soundManager.play('click');
+        setActiveTab(tab);
+    };
+
 
     const handleEmployeesFile = (content: string | ArrayBuffer) => {
         try {
@@ -139,7 +147,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 {/* Tabs */}
                 <div className="flex border-b border-amber-500/20">
                     <button
-                        onClick={() => setActiveTab('employees')}
+                        onClick={() => switchTab('employees')}
                         className={`flex-1 py-3 text-center font-medium transition-colors ${activeTab === 'employees'
                             ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/10'
                             : 'text-amber-400/50 hover:text-amber-300'
@@ -148,7 +156,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         👥 員工清單 ({currentEmployees.length})
                     </button>
                     <button
-                        onClick={() => setActiveTab('prizes')}
+                        onClick={() => switchTab('prizes')}
                         className={`flex-1 py-3 text-center font-medium transition-colors ${activeTab === 'prizes'
                             ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/10'
                             : 'text-amber-400/50 hover:text-amber-300'
@@ -157,7 +165,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         🎁 獎品清單 ({currentPrizes.length})
                     </button>
                     <button
-                        onClick={() => setActiveTab('winners')}
+                        onClick={() => switchTab('winners')}
                         className={`flex-1 py-3 text-center font-medium transition-colors ${activeTab === 'winners'
                             ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/10'
                             : 'text-amber-400/50 hover:text-amber-300'

@@ -10,6 +10,7 @@ import {
     saveWinners, loadWinners,
     clearAllData
 } from '../utils/storage';
+import { soundManager } from '../utils/sound';
 
 export interface UseLotteryReturn {
     // State
@@ -123,6 +124,7 @@ export const useLottery = (): UseLotteryReturn => {
                 };
                 setJoiners(prev => [...prev.slice(-15), newJoiner]);
                 setParticipantCount(prev => prev + 1);
+                soundManager.play('join');
             }, 400);
         }
         return () => clearInterval(interval);
@@ -156,6 +158,8 @@ export const useLottery = (): UseLotteryReturn => {
         setPhase('countdown');
         setCountdown(DEFAULT_CONFIG.countdownSeconds);
         setAiCommentary('');
+        soundManager.play('click');
+        soundManager.play('countdown', true); // 循環播放倒數音效
 
         let count = DEFAULT_CONFIG.countdownSeconds;
         const timer = setInterval(() => {
@@ -169,6 +173,8 @@ export const useLottery = (): UseLotteryReturn => {
     }, [phase, currentPrize, getEligibleEmployees]);
 
     const startRollingInternal = () => {
+        soundManager.stop('countdown');
+        soundManager.play('rolling', true);
         setPhase('rolling');
     };
 
@@ -198,6 +204,8 @@ export const useLottery = (): UseLotteryReturn => {
 
     const stopRolling = useCallback(() => {
         if (phase !== 'rolling' || !currentPrize) return;
+        soundManager.stop('rolling');
+        soundManager.play('win');
         if (rollingIntervalRef.current) clearInterval(rollingIntervalRef.current);
 
         const eligible = getEligibleEmployees();
@@ -223,6 +231,7 @@ export const useLottery = (): UseLotteryReturn => {
     }, [phase, currentPrize, getEligibleEmployees]);
 
     const nextPrize = useCallback(() => {
+        soundManager.play('click');
         if (currentPrizeIndex < prizes.length - 1) {
             setCurrentPrizeIndex(prev => prev + 1);
             setPhase('standby');
@@ -322,7 +331,10 @@ export const useLottery = (): UseLotteryReturn => {
         isAiLoading,
         soundEnabled,
         setPhase,
-        setSoundEnabled,
+        setSoundEnabled: (enabled: boolean) => {
+            setSoundEnabled(enabled);
+            soundManager.setEnabled(enabled);
+        },
         startCountdown,
         startRolling,
         stopRolling,
