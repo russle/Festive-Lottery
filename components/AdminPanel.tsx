@@ -1,5 +1,5 @@
 // 管理面板元件
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Download, Trash2, Check, AlertTriangle, Music, Play, Pause, Volume2 } from 'lucide-react';
 import type { Employee, Prize, Winner } from '../types';
 import { FileUploader } from './FileUploader';
@@ -14,6 +14,7 @@ import {
 } from '../utils/dataParser';
 
 import { soundManager } from '../utils/sound';
+import { saveBGMFile, loadBGMFile } from '../utils/db';
 
 interface AdminPanelProps {
     currentEmployees: Employee[];
@@ -38,22 +39,43 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const [pendingPrizes, setPendingPrizes] = useState<Prize[] | null>(null);
     const [errors, setErrors] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState<'employees' | 'prizes' | 'winners' | 'bgm'>('employees');
-    const [bgmFileName, setBgmFileName] = useState<string | null>(null);
-    const [isBgmPlaying, setIsBgmPlaying] = useState(false);
-    const [volume, setVolume] = useState(soundManager.getBGMVolume() * 100);
 
     const switchTab = (tab: 'employees' | 'prizes' | 'winners' | 'bgm') => {
         soundManager.play('click');
         setActiveTab(tab);
     };
+    const [bgmFileName, setBgmFileName] = useState<string | null>(null);
+    const [isBgmPlaying, setIsBgmPlaying] = useState(false);
+    const [volume, setVolume] = useState(soundManager.getBGMVolume() * 100);
 
-    const handleBGMFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 載入儲存的 BGM
+    useEffect(() => {
+        const initBGM = async () => {
+            const savedFile = await loadBGMFile();
+            if (savedFile) {
+                soundManager.setBGM(savedFile);
+                if (savedFile instanceof File) {
+                    setBgmFileName(savedFile.name);
+                } else {
+                    setBgmFileName('已儲存的音樂');
+                }
+            }
+        };
+        initBGM();
+    }, []);
+
+    const handleBGMFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            soundManager.setBGM(file);
-            setBgmFileName(file.name);
-            setIsBgmPlaying(true);
-            soundManager.playBGM();
+            try {
+                await saveBGMFile(file);
+                soundManager.setBGM(file);
+                setBgmFileName(file.name);
+                setIsBgmPlaying(true);
+                soundManager.playBGM();
+            } catch (err) {
+                setErrors(['儲存音樂檔案失敗 (IndexedDB 錯誤)']);
+            }
         }
     };
 

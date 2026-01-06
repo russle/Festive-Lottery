@@ -2,3 +2,4 @@
 export * from './dataParser';
 export * from './storage';
 export * from './sound';
+export * from './db';

@@ -11,6 +11,7 @@ import {
     clearAllData
 } from '../utils/storage';
 import { soundManager } from '../utils/sound';
+import { loadBGMFile } from '../utils/db';
 
 export interface UseLotteryReturn {
     // State
@@ -93,6 +94,12 @@ export const useLottery = (): UseLotteryReturn => {
 
             if (storedWinners && storedWinners.length > 0) {
                 setWinners(storedWinners);
+            }
+
+            // 載入 BGM
+            const savedBGM = await loadBGMFile();
+            if (savedBGM) {
+                soundManager.setBGM(savedBGM);
             }
         };
         loadData();

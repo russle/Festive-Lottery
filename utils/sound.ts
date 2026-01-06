@@ -31,7 +31,7 @@ class SoundManager {
     }
 
     /** 背景音樂控制 */
-    setBGM(source: string | File) {
+    setBGM(source: string | File | Blob) {
         if (this.bgm) {
             this.bgm.pause();
             this.bgm = null;
