@@ -1,7 +1,7 @@
 // FestiveLottery 主程式入口
 // 模組化版本 - 2026 紫氣東來・尾牙盛典抽獎系統
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Settings } from 'lucide-react';
 
 // 匯入自訂 Hook
@@ -70,6 +70,7 @@ export default function FestiveLottery() {
         <AdminPanel
           currentEmployees={lottery.employees}
           currentPrizes={lottery.prizes}
+          winners={lottery.winners}
           onUpdateEmployees={lottery.updateEmployees}
           onUpdatePrizes={lottery.updatePrizes}
           onResetAll={lottery.clearStoredData}

@@ -1,7 +1,7 @@
 // 管理面板元件
 import React, { useState } from 'react';
 import { X, Download, Trash2, Check, AlertTriangle } from 'lucide-react';
-import type { Employee, Prize } from '../types';
+import type { Employee, Prize, Winner } from '../types';
 import { FileUploader } from './FileUploader';
 import { DataPreview } from './DataPreview';
 import {
@@ -16,6 +16,7 @@ import {
 interface AdminPanelProps {
     currentEmployees: Employee[];
     currentPrizes: Prize[];
+    winners: Winner[];
     onUpdateEmployees: (employees: Employee[]) => void;
     onUpdatePrizes: (prizes: Prize[]) => void;
     onResetAll: () => void;
@@ -25,6 +26,7 @@ interface AdminPanelProps {
 export const AdminPanel: React.FC<AdminPanelProps> = ({
     currentEmployees,
     currentPrizes,
+    winners,
     onUpdateEmployees,
     onUpdatePrizes,
     onResetAll,
@@ -33,7 +35,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const [pendingEmployees, setPendingEmployees] = useState<Employee[] | null>(null);
     const [pendingPrizes, setPendingPrizes] = useState<Prize[] | null>(null);
     const [errors, setErrors] = useState<string[]>([]);
-    const [activeTab, setActiveTab] = useState<'employees' | 'prizes'>('employees');
+    const [activeTab, setActiveTab] = useState<'employees' | 'prizes' | 'winners'>('employees');
 
     const handleEmployeesFile = (content: string) => {
         try {
@@ -100,6 +102,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         URL.revokeObjectURL(url);
     };
 
+    const exportWinners = () => {
+        if (winners.length === 0) return;
+
+        const headers = '獎項編號,獎項名稱,員工編號,姓名,部門,獲獎時間\n';
+        const rows = winners.map(w => {
+            const prize = currentPrizes.find(p => p.id === w.prizeId);
+            const time = new Date(w.timestamp).toLocaleString();
+            return `${w.prizeId},${prize?.name || '未知'},${w.employee.id},${w.employee.name},${w.employee.dept},${time}`;
+        }).join('\n');
+
+        const content = headers + rows;
+        const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `winners_report_${new Date().getTime()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="fixed inset-0 z-[90] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-gradient-to-b from-[#2a0a12] to-[#1a0510] w-full max-w-4xl max-h-[90vh] rounded-2xl border border-amber-500/30 shadow-2xl overflow-hidden flex flex-col">
@@ -119,8 +141,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <button
                         onClick={() => setActiveTab('employees')}
                         className={`flex-1 py-3 text-center font-medium transition-colors ${activeTab === 'employees'
-                                ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/10'
-                                : 'text-amber-400/50 hover:text-amber-300'
+                            ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/10'
+                            : 'text-amber-400/50 hover:text-amber-300'
                             }`}
                     >
                         👥 員工清單 ({currentEmployees.length})
@@ -128,11 +150,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <button
                         onClick={() => setActiveTab('prizes')}
                         className={`flex-1 py-3 text-center font-medium transition-colors ${activeTab === 'prizes'
-                                ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/10'
-                                : 'text-amber-400/50 hover:text-amber-300'
+                            ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/10'
+                            : 'text-amber-400/50 hover:text-amber-300'
                             }`}
                     >
                         🎁 獎品清單 ({currentPrizes.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('winners')}
+                        className={`flex-1 py-3 text-center font-medium transition-colors ${activeTab === 'winners'
+                            ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/10'
+                            : 'text-amber-400/50 hover:text-amber-300'
+                            }`}
+                    >
+                        🏆 中獎名單 ({winners.length})
                     </button>
                 </div>
 
@@ -229,6 +260,60 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 <DataPreview type="prizes" prizes={currentPrizes} />
                             )}
                         </>
+                    )}
+
+                    {activeTab === 'winners' && (
+                        <div className="space-y-6">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-amber-300 font-medium">中獎統計數據</h3>
+                                <button
+                                    onClick={exportWinners}
+                                    disabled={winners.length === 0}
+                                    className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+                                >
+                                    <Download size={14} />
+                                    導出中獎名單 (CSV)
+                                </button>
+                            </div>
+
+                            {winners.length > 0 ? (
+                                <div className="bg-black/30 rounded-xl overflow-hidden border border-amber-500/20">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead>
+                                                <tr className="bg-amber-900/30 border-b border-amber-500/20">
+                                                    <th className="px-4 py-2 text-left text-amber-300">獎項</th>
+                                                    <th className="px-4 py-2 text-left text-amber-300">員工編號</th>
+                                                    <th className="px-4 py-2 text-left text-amber-300">姓名</th>
+                                                    <th className="px-4 py-2 text-left text-amber-300">部門</th>
+                                                    <th className="px-4 py-2 text-right text-amber-300">獲獎時間</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {winners.map((w, i) => {
+                                                    const prize = currentPrizes.find(p => p.id === w.prizeId);
+                                                    return (
+                                                        <tr key={i} className={i % 2 === 0 ? 'bg-black/10' : ''}>
+                                                            <td className="px-4 py-2 text-amber-100/90">{prize?.name || '未知'}</td>
+                                                            <td className="px-4 py-2 text-amber-200/60 font-mono">{w.employee.id}</td>
+                                                            <td className="px-4 py-2 text-white font-medium">{w.employee.name}</td>
+                                                            <td className="px-4 py-2 text-amber-200/60">{w.employee.dept}</td>
+                                                            <td className="px-4 py-2 text-right text-amber-500/50 text-xs">
+                                                                {new Date(w.timestamp).toLocaleTimeString()}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-20 bg-black/20 rounded-2xl border border-dashed border-amber-500/10">
+                                    <p className="text-amber-500/30">尚無中獎紀錄</p>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
 
