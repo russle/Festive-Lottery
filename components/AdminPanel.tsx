@@ -192,7 +192,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
     return (
         <div className="fixed inset-0 z-[90] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-gradient-to-b from-[#2a0a12] to-[#1a0510] w-full max-w-4xl max-h-[90vh] rounded-2xl border border-amber-500/30 shadow-2xl overflow-hidden flex flex-col">
+            <div className="bg-gradient-to-b from-[#2a0a12] to-[#1a0510] w-full max-w-4xl max-h-[90vh] rounded-2xl border border-amber-500/30 shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-amber-500/20">
                     <h2 className="text-2xl font-bold text-amber-300">📋 資料管理</h2>
@@ -352,14 +352,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <div className="space-y-6">
                             <div className="flex justify-between items-center">
                                 <h3 className="text-amber-300 font-medium">中獎統計數據</h3>
-                                <button
-                                    onClick={exportWinners}
-                                    disabled={winners.length === 0}
-                                    className="flex items-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-4 py-2 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <Download size={16} />
-                                    導出 Excel 報表
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            if (winners.length > 0 && confirm('確定要清除所有中獎紀錄嗎？此動作無法復原。')) {
+                                                onResetAll();
+                                            }
+                                        }}
+                                        disabled={winners.length === 0}
+                                        className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <Trash2 size={16} />
+                                        清除紀錄
+                                    </button>
+                                    <button
+                                        onClick={exportWinners}
+                                        disabled={winners.length === 0}
+                                        className="flex items-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-4 py-2 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <Download size={16} />
+                                        導出 Excel 報表
+                                    </button>
+                                </div>
                             </div>
 
                             {winners.length > 0 ? (
