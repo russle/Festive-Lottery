@@ -1,22 +1,27 @@
-// 抽獎邏輯自訂 Hook
+// 抽獎邏輯自訂 Hook (重構後 - 使用組合模式)
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { Phase, Employee, Prize, Winner, Joiner, AIConfig } from '../types';
+import type { Phase, Employee, Prize, Winner, Joiner } from '../types';
 import { lotteryAPI } from '../api/lottery';
-import { generatePrizeIntro, generateWinnerComment, setAIConfig } from '../api/ai';
 import { DEFAULT_CONFIG } from '../constants';
 import {
     savePrizes, loadPrizes,
     saveWinners, loadWinners,
-    clearAllData, saveAIConfig, loadAIConfig,
-    saveCustomLogo, loadCustomLogo, clearCustomLogo,
-    saveEventTitle, loadEventTitle, saveEventSubtitle, loadEventSubtitle,
+    clearAllData,
     saveEmployees, loadEmployees, clearEmployees,
     clearPrizes, clearWinners as storageClearWinners,
 } from '../utils/storage';
 import { soundManager } from '../utils/sound';
 import { loadBGMFile } from '../utils/db';
 
-export interface UseLotteryReturn {
+// 引入拆分後的子 Hooks
+import { useEventBranding, UseEventBrandingReturn } from './useEventBranding';
+import { useAICommentary, UseAICommentaryReturn } from './useAICommentary';
+
+// ============================================================================
+// Types
+// ============================================================================
+
+export interface UseLotteryReturn extends UseEventBrandingReturn, Omit<UseAICommentaryReturn, 'generatePrizeAI' | 'generateWinnerAI' | 'clearCommentary'> {
     // State
     phase: Phase;
     employees: Employee[];
@@ -30,13 +35,7 @@ export interface UseLotteryReturn {
     currentBatchWinners: Employee[];
     participantCount: number;
     joiners: Joiner[];
-    aiCommentary: string;
-    isAiLoading: boolean;
     soundEnabled: boolean;
-    aiConfig: AIConfig;
-    customLogo: string | null;
-    eventTitle: string;
-    eventSubtitle: string;
 
     // Actions
     setPhase: (phase: Phase) => void;
@@ -53,19 +52,27 @@ export interface UseLotteryReturn {
     // 動態資料更新
     updateEmployees: (employees: Employee[]) => void;
     updatePrizes: (prizes: Prize[]) => void;
-    updateAIConfig: (config: AIConfig) => void;
     clearStoredData: () => void;
     resetEmployees: () => void;
     resetPrizes: () => void;
     resetWinners: () => void;
     resetBGM: () => void;
-    updateCustomLogo: (logoData: string) => void;
-    resetCustomLogo: () => void;
-    updateEventTitle: (title: string) => void;
-    updateEventSubtitle: (subtitle: string) => void;
 }
 
+// ============================================================================
+// Main Hook
+// ============================================================================
+
 export const useLottery = (): UseLotteryReturn => {
+    // ========================================================================
+    // Sub-hooks (組合模式)
+    // ========================================================================
+    const branding = useEventBranding();
+    const ai = useAICommentary();
+
+    // ========================================================================
+    // Core Lottery State
+    // ========================================================================
     const [phase, setPhase] = useState<Phase>('standby');
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [prizes, setPrizes] = useState<Prize[]>([]);
@@ -77,85 +84,39 @@ export const useLottery = (): UseLotteryReturn => {
     const [currentBatchWinners, setCurrentBatchWinners] = useState<Employee[]>([]);
     const [participantCount, setParticipantCount] = useState(0);
     const [joiners, setJoiners] = useState<Joiner[]>([]);
-    const [aiCommentary, setAiCommentary] = useState('');
-    const [isAiLoading, setIsAiLoading] = useState(false);
     const [soundEnabled, setSoundEnabled] = useState(true);
-    const [aiConfig, setAIConfigState] = useState<AIConfig>({
-        provider: 'gemini',
-        geminiKey: '',
-        openaiKey: '',
-    });
-    const [customLogo, setCustomLogo] = useState<string | null>(null);
-    const [eventTitle, setEventTitle] = useState(`${DEFAULT_CONFIG.eventYear} ${DEFAULT_CONFIG.eventName}`);
-    const [eventSubtitle, setEventSubtitle] = useState('年終聯歡晚會');
 
     const rollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const lastSyncedCount = useRef(0);
 
     const currentPrize = prizes[currentPrizeIndex];
 
-    // 初始化載入資料（優先從本地載入）
+    // ========================================================================
+    // Data Loading (初始化)
+    // ========================================================================
     useEffect(() => {
         const loadData = async () => {
-            // 先嘗試從本地儲存載入
             const storedEmployees = loadEmployees();
             const storedPrizes = loadPrizes();
             const storedWinners = loadWinners();
 
-            if (storedEmployees !== null) {
-                setEmployees(storedEmployees);
-            } else {
-                // 初次使用，預設為空
-                setEmployees([]);
-            }
+            setEmployees(storedEmployees ?? []);
+            setPrizes(storedPrizes ?? []);
+            setWinners(storedWinners ?? []);
 
-            if (storedPrizes !== null) {
-                setPrizes(storedPrizes);
-            } else {
-                setPrizes([]);
-            }
-
-            if (storedWinners !== null) {
-                setWinners(storedWinners);
-            } else {
-                setWinners([]);
-            }
-
-            // 載入 BGM
             const savedBGM = await loadBGMFile();
-            if (savedBGM) {
-                soundManager.setBGM(savedBGM);
-            }
-
-            // 載入 AI 設定
-            const savedAIConfig = loadAIConfig();
-            if (savedAIConfig) {
-                setAIConfigState(savedAIConfig);
-                setAIConfig(savedAIConfig);
-            }
-
-            // 載入 Custom Logo
-            const savedLogo = loadCustomLogo();
-            if (savedLogo) {
-                setCustomLogo(savedLogo);
-            }
-
-            // 載入標題設定
-            const savedTitle = loadEventTitle();
-            if (savedTitle) setEventTitle(savedTitle);
-
-            const savedSubtitle = loadEventSubtitle();
-            if (savedSubtitle) setEventSubtitle(savedSubtitle);
+            if (savedBGM) soundManager.setBGM(savedBGM);
         };
         loadData();
     }, []);
 
-    // 中獎紀錄變更時自動儲存到本地及雲端
-    const lastSyncedCount = useRef(0);
+    // ========================================================================
+    // Auto-sync Winners to Cloud
+    // ========================================================================
     useEffect(() => {
         if (winners.length > 0) {
             saveWinners(winners);
 
-            // 只同步新增的中獎者到雲端
             const newWinners = winners.slice(lastSyncedCount.current);
             if (newWinners.length > 0) {
                 console.log(`[Auto-Sync] Syncing ${newWinners.length} new winner(s) to cloud...`);
@@ -169,17 +130,18 @@ export const useLottery = (): UseLotteryReturn => {
                 lastSyncedCount.current = winners.length;
             }
         } else {
-            // 清空時重置計數
             lastSyncedCount.current = 0;
         }
     }, [winners]);
 
     // 切換獎項時清空 AI 評語
     useEffect(() => {
-        setAiCommentary('');
+        ai.clearCommentary();
     }, [currentPrizeIndex]);
 
-    // Join 模式模擬加入者
+    // ========================================================================
+    // Join Phase Animation
+    // ========================================================================
     useEffect(() => {
         let interval: ReturnType<typeof setInterval>;
         if (phase === 'join' && employees.length > 0) {
@@ -199,7 +161,9 @@ export const useLottery = (): UseLotteryReturn => {
         return () => clearInterval(interval);
     }, [phase, employees]);
 
-    // 批量揭曉自動遞進
+    // ========================================================================
+    // Batch Reveal Auto-progression
+    // ========================================================================
     useEffect(() => {
         let timer: ReturnType<typeof setTimeout>;
         if (phase === 'batch_reveal' && batchRevealedCount < currentBatchWinners.length) {
@@ -210,6 +174,9 @@ export const useLottery = (): UseLotteryReturn => {
         return () => clearTimeout(timer);
     }, [phase, batchRevealedCount, currentBatchWinners]);
 
+    // ========================================================================
+    // Core Lottery Logic
+    // ========================================================================
     const getEligibleEmployees = useCallback(() => {
         const winnerIds = new Set(winners.map(w => w.employee.id));
         return employees.filter(e => !winnerIds.has(e.id));
@@ -222,7 +189,6 @@ export const useLottery = (): UseLotteryReturn => {
         if (remaining <= 0) return 0;
 
         const target = currentPrize.countPerRound || (currentPrize.type === 'batch' ? currentPrize.count : 1);
-        // 單次抽獎上限限制為 12 人
         return Math.min(target, remaining, 12);
     }, [currentPrize, winners]);
 
@@ -238,15 +204,14 @@ export const useLottery = (): UseLotteryReturn => {
 
         if (eligible.length < countToDraw) {
             alert(`候選人不足！\n目前可抽人數：${eligible.length} 人\n本輪需抽出：${countToDraw} 人\n請檢查是否所有人均已中獎。`);
-            console.warn('候選人不足或獎項已抽完！');
             return;
         }
 
         setPhase('countdown');
         setCountdown(DEFAULT_CONFIG.countdownSeconds);
-        setAiCommentary('');
+        ai.clearCommentary();
         soundManager.play('click');
-        soundManager.play('countdown', true); // 循環播放倒數音效
+        soundManager.play('countdown', true);
 
         let count = DEFAULT_CONFIG.countdownSeconds;
         const timer = setInterval(() => {
@@ -257,7 +222,7 @@ export const useLottery = (): UseLotteryReturn => {
                 startRollingInternal();
             }
         }, 1000);
-    }, [phase, currentPrize, getEligibleEmployees]);
+    }, [phase, currentPrize, getEligibleEmployees, getCountToDraw]);
 
     const startRollingInternal = () => {
         soundManager.stop('countdown');
@@ -277,7 +242,6 @@ export const useLottery = (): UseLotteryReturn => {
         }, DEFAULT_CONFIG.rollingIntervalMs);
     }, [getEligibleEmployees]);
 
-    // 當進入 rolling 階段時啟動滾動
     useEffect(() => {
         if (phase === 'rolling') {
             startRolling();
@@ -315,17 +279,15 @@ export const useLottery = (): UseLotteryReturn => {
             setCurrentRollingName(newWinners[0]?.name || '');
             setPhase('reveal');
         }
-    }, [phase, currentPrize, getEligibleEmployees]);
+    }, [phase, currentPrize, getEligibleEmployees, getCountToDraw]);
 
     const nextPrize = useCallback(() => {
         soundManager.play('click');
 
-        // 檢查當前獎項是否還有剩餘
         const prizeWinners = winners.filter(w => w.prizeId === currentPrize?.id);
         const isCurrentFinished = currentPrize && prizeWinners.length >= currentPrize.count;
 
         if (!isCurrentFinished) {
-            // 還有剩餘，停留在當前獎項進行下一輪
             setPhase('standby');
             return;
         }
@@ -338,14 +300,17 @@ export const useLottery = (): UseLotteryReturn => {
         }
     }, [currentPrizeIndex, prizes.length, winners, currentPrize]);
 
+    // ========================================================================
+    // Reset Functions
+    // ========================================================================
     const resetAll = useCallback(() => {
         setCurrentPrizeIndex(0);
         setWinners([]);
         setPhase('standby');
-        setAiCommentary('');
+        ai.clearCommentary();
         setParticipantCount(0);
         setJoiners([]);
-        saveWinners([]); // 清空儲存的中獎紀錄
+        saveWinners([]);
     }, []);
 
     const resetCurrentPrize = useCallback(() => {
@@ -354,76 +319,28 @@ export const useLottery = (): UseLotteryReturn => {
         setPhase('standby');
     }, [currentPrize]);
 
-    const generatePrizeAI = useCallback(async () => {
-        // 防抖：如果正在載入或已有結果，不重複調用
-        if (isAiLoading) return;
-        if (aiCommentary && aiCommentary !== '福星高照，財源廣進！') return;
-        if (!currentPrize) return;
-
-        setIsAiLoading(true);
-        setAiCommentary('');
-        try {
-            const text = await generatePrizeIntro(currentPrize.name);
-            setAiCommentary(text);
-        } catch (error: any) {
-            console.error('AI Gen Error:', error);
-            setAiCommentary('福星高照，財源廣進！');
-            alert(`AI 生成失敗：${error.message}`);
-        } finally {
-            setIsAiLoading(false);
-        }
-    }, [currentPrize, isAiLoading, aiCommentary]);
-
-    const generateWinnerAI = useCallback(async () => {
-        // 防抖：如果正在載入，不重複調用
-        if (isAiLoading) return;
-
-        const lastWinner = winners[winners.length - 1];
-        if (!lastWinner || !currentPrize) return;
-
-        setIsAiLoading(true);
-        setAiCommentary('');
-        try {
-            const text = await generateWinnerComment(
-                lastWinner.employee.name,
-                lastWinner.employee.dept,
-                currentPrize.name
-            );
-            setAiCommentary(text);
-        } catch (error: any) {
-            console.error('AI Gen Error:', error);
-            setAiCommentary('福星高照，財源廣進！');
-            alert(`AI 生成失敗：${error.message}`);
-        } finally {
-            setIsAiLoading(false);
-        }
-    }, [winners, currentPrize, isAiLoading]);
-
-    // 動態更新員工資料
+    // ========================================================================
+    // Data Update Functions
+    // ========================================================================
     const updateEmployees = useCallback((newEmployees: Employee[]) => {
         setEmployees(newEmployees);
         saveEmployees(newEmployees);
-        // 重置相關狀態
         setWinners([]);
         setCurrentPrizeIndex(0);
         setPhase('standby');
     }, []);
 
-    // 動態更新獎品資料
     const updatePrizes = useCallback((newPrizes: Prize[]) => {
         setPrizes(newPrizes);
         savePrizes(newPrizes);
-        // 重置相關狀態
         setWinners([]);
         setCurrentPrizeIndex(0);
         setPhase('standby');
     }, []);
 
-
-    // 清除單項資料
     const resetEmployees = useCallback(() => {
         clearEmployees();
-        lotteryAPI.resetEmployees(); // 清除雲端資料
+        lotteryAPI.resetEmployees();
         setEmployees([]);
         setWinners([]);
         saveWinners([]);
@@ -432,7 +349,7 @@ export const useLottery = (): UseLotteryReturn => {
 
     const resetPrizes = useCallback(() => {
         clearPrizes();
-        lotteryAPI.resetPrizes(); // 清除雲端資料
+        lotteryAPI.resetPrizes();
         setPrizes([]);
         setWinners([]);
         saveWinners([]);
@@ -447,51 +364,40 @@ export const useLottery = (): UseLotteryReturn => {
     }, []);
 
     const resetBGM = useCallback(() => {
-        // 因 BGM 是在 IndexedDB，需要調用 db.ts 的清除
         import('../utils/db').then(({ clearBGM }) => {
             clearBGM();
         });
     }, []);
 
-    const updateCustomLogo = useCallback((logoData: string) => {
-        setCustomLogo(logoData);
-        saveCustomLogo(logoData);
-    }, []);
-
-    const resetCustomLogo = useCallback(() => {
-        setCustomLogo(null);
-        clearCustomLogo();
-    }, []);
-
-    const updateEventTitle = useCallback((title: string) => {
-        setEventTitle(title);
-        saveEventTitle(title);
-    }, []);
-
-    const updateEventSubtitle = useCallback((subtitle: string) => {
-        setEventSubtitle(subtitle);
-        saveEventSubtitle(subtitle);
-    }, []);
-
-    // 清除所有儲存的資料 (重置為空狀態)
     const clearStoredData = useCallback(() => {
         clearAllData();
-        // 清除雲端中獎紀錄
         lotteryAPI.resetWinners();
-        // 重置同步計數
         lastSyncedCount.current = 0;
-
-        // 全部設為空，不再載入 mock
         setEmployees([]);
         setPrizes([]);
         setWinners([]);
-
         setCurrentPrizeIndex(0);
         setPhase('standby');
         console.log('[Reset] All data cleared (local + cloud)');
     }, []);
 
+    // ========================================================================
+    // AI Generation Wrappers (使用組合 Hook)
+    // ========================================================================
+    const generatePrizeAI = useCallback(() => {
+        ai.generatePrizeAI(currentPrize);
+    }, [currentPrize, ai.generatePrizeAI]);
+
+    const generateWinnerAI = useCallback(() => {
+        const lastWinner = winners[winners.length - 1];
+        ai.generateWinnerAI(lastWinner, currentPrize);
+    }, [winners, currentPrize, ai.generateWinnerAI]);
+
+    // ========================================================================
+    // Return (組合所有 Hooks 的狀態與方法)
+    // ========================================================================
     return {
+        // Core state
         phase,
         employees,
         prizes,
@@ -504,13 +410,18 @@ export const useLottery = (): UseLotteryReturn => {
         currentBatchWinners,
         participantCount,
         joiners,
-        aiCommentary,
-        isAiLoading,
         soundEnabled,
-        aiConfig,
-        customLogo,
-        eventTitle,
-        eventSubtitle,
+
+        // From branding hook
+        ...branding,
+
+        // From AI hook (selected)
+        aiCommentary: ai.aiCommentary,
+        isAiLoading: ai.isAiLoading,
+        aiConfig: ai.aiConfig,
+        updateAIConfig: ai.updateAIConfig,
+
+        // Actions
         setPhase,
         setSoundEnabled: (enabled: boolean) => {
             setSoundEnabled(enabled);
@@ -530,15 +441,6 @@ export const useLottery = (): UseLotteryReturn => {
         resetPrizes,
         resetWinners: resetWinnersData,
         resetBGM,
-        updateCustomLogo,
-        resetCustomLogo,
-        updateEventTitle,
-        updateEventSubtitle,
-        updateAIConfig: (config: AIConfig) => {
-            setAIConfigState(config);
-            saveAIConfig(config);
-            setAIConfig(config);
-        },
         clearStoredData,
     };
 };
