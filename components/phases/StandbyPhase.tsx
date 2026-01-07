@@ -51,7 +51,7 @@ export const StandbyPhase: React.FC<StandbyPhaseProps> = ({
                         <div className="bg-white/20 rounded-full p-1">
                             <Play size={16} fill="currentColor" />
                         </div>
-                        啟動好運 (Space)
+                        啟動好運
                     </div>
                 </button>
             </div>

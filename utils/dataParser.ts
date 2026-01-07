@@ -110,7 +110,7 @@ export const parsePrizes = (content: string | ArrayBuffer): Prize[] => {
                 icon: iconIndex !== -1 ? row[iconIndex] || '🎁' : '🎁',
                 count,
                 type,
-                countPerRound: Math.min(countPerRound, count),
+                countPerRound: Math.min(countPerRound, count, 12),
             };
         });
 };
@@ -160,7 +160,7 @@ export const generateSampleEmployeesCSV = (): string => {
 
 export const generateSamplePrizesCSV = (): string => {
     return `id,name,icon,count,type,countPerRound
-1,開運紅包 - SOGO 禮券,🧧,10,batch,5
+1,開運紅包 - SOGO 禮券,🧧,10,batch,10
 2,Apple Watch Ultra 2,⌚,5,batch,1
 3,Dyson 吹風機,🎐,3,single,1
 4,iPhone 16 Pro,📱,2,single,1
@@ -199,7 +199,7 @@ export const generateSampleEmployeesExcel = (): ArrayBuffer => {
 export const generateSamplePrizesExcel = (): ArrayBuffer => {
     const data = [
         ['id', 'name', 'icon', 'count', 'type', 'countPerRound'],
-        [1, '開運紅包 - SOGO 禮券', '🧧', 10, 'batch', 5],
+        [1, '開運紅包 - SOGO 禮券', '🧧', 10, 'batch', 10],
         [2, 'Apple Watch Ultra 2', '⌚', 5, 'batch', 1],
         [3, 'Dyson 吹風機', '🎐', 3, 'single', 1],
         [4, 'iPhone 16 Pro', '📱', 2, 'single', 1],

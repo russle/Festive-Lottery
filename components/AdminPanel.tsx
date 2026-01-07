@@ -1,8 +1,8 @@
 // 管理面板元件
 import React, { useState, useEffect } from 'react';
-import { X, Download, Trash2, Check, AlertTriangle, Music, Play, Pause, Volume2, Settings as SettingsIcon, ExternalLink, Cloud, RefreshCw, QrCode } from 'lucide-react';
+import { X, Download, Trash2, Check, AlertTriangle, Music, Play, Pause, Volume2, Settings as SettingsIcon, ExternalLink, Cloud, RefreshCw, QrCode, Upload, Plus } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import type { Employee, Prize, Winner, AIConfig } from '../types';
+import type { Employee, Prize, Winner, AIConfig, PrizeType } from '../types';
 import { FileUploader } from './FileUploader';
 import { DataPreview } from './DataPreview';
 import {
@@ -18,6 +18,7 @@ import {
 import { soundManager } from '../utils/sound';
 import { saveBGMFile, loadBGMFile } from '../utils/db';
 import { cloudLotteryAPI } from '../api/lottery';
+import { loadApiUrl, saveApiUrl } from '../utils/storage';
 
 interface AdminPanelProps {
     currentEmployees: Employee[];
@@ -32,6 +33,13 @@ interface AdminPanelProps {
     onResetPrizes: () => void;
     onResetWinners: () => void;
     onResetBGM: () => void;
+    customLogo?: string | null;
+    onUpdateCustomLogo?: (logo: string) => void;
+    onResetCustomLogo?: () => void;
+    eventTitle?: string;
+    onUpdateEventTitle?: (title: string) => void;
+    eventSubtitle?: string;
+    onUpdateEventSubtitle?: (subtitle: string) => void;
     onClose: () => void;
 }
 
@@ -49,12 +57,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     onResetPrizes,
     onResetWinners,
     onResetBGM,
+    customLogo,
+    onUpdateCustomLogo,
+    onResetCustomLogo,
+    eventTitle,
+    onUpdateEventTitle,
+    eventSubtitle,
+    onUpdateEventSubtitle,
     onClose,
 }) => {
     const [pendingEmployees, setPendingEmployees] = useState<Employee[] | null>(null);
     const [pendingPrizes, setPendingPrizes] = useState<Prize[] | null>(null);
     const [errors, setErrors] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState<'employees' | 'prizes' | 'winners' | 'bgm' | 'settings'>('employees');
+    const [apiUrl, setApiUrlState] = useState(loadApiUrl() || '');
+    const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
+    const [syncMessage, setSyncMessage] = useState('');
 
     const switchTab = (tab: 'employees' | 'prizes' | 'winners' | 'bgm' | 'settings') => {
         soundManager.play('click');
@@ -63,8 +81,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const [bgmFileName, setBgmFileName] = useState<string | null>(null);
     const [isBgmPlaying, setIsBgmPlaying] = useState(false);
     const [volume, setVolume] = useState(soundManager.getBGMVolume() * 100);
-    const [isSyncing, setIsSyncing] = useState(false);
-    const [syncStatus, setSyncStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
     // 載入儲存的 BGM
     useEffect(() => {
@@ -112,6 +128,73 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         soundManager.setBGMVolume(val / 100);
     };
 
+    const [newPrizeName, setNewPrizeName] = useState('');
+    const [newPrizeCount, setNewPrizeCount] = useState<number | ''>('');
+    const [newPrizeCountPerRound, setNewPrizeCountPerRound] = useState<number>(1);
+    const [newPrizeType, setNewPrizeType] = useState<PrizeType>('single');
+    const [newPrizeIcon, setNewPrizeIcon] = useState('🎁');
+
+    const handleAddPrize = () => {
+        if (!newPrizeName.trim() || !newPrizeCount) {
+            setErrors(['請輸入獎項名稱與數量']);
+            return;
+        }
+
+        const count = Number(newPrizeCount);
+        if (count <= 0) {
+            setErrors(['數量必須大於 0']);
+            return;
+        }
+
+        const newId = currentPrizes.length > 0 ? Math.max(...currentPrizes.map(p => p.id)) + 1 : 1;
+        const prize: Prize = {
+            id: newId,
+            name: newPrizeName,
+            count: count,
+            type: newPrizeType,
+            icon: newPrizeIcon,
+            countPerRound: newPrizeCountPerRound
+        };
+
+        onUpdatePrizes([...currentPrizes, prize]);
+
+        // Reset form
+        setNewPrizeName('');
+        setNewPrizeCount('');
+        setNewPrizeCountPerRound(1);
+        setNewPrizeIcon('🎁');
+        alert(`已新增獎項：${newPrizeName}`);
+    };
+
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // DEBUG: 確認事件觸發
+        console.log('File selected:', file.name);
+
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Logo圖片大小請勿超過 2MB');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            if (event.target?.result) {
+                if (onUpdateCustomLogo) {
+                    onUpdateCustomLogo(event.target.result as string);
+                    // Remove success alert to avoid annoyance, rely on UI update
+                } else {
+                    alert('錯誤：找不到 onUpdateCustomLogo 函式，請聯繫開發人員');
+                }
+            }
+        };
+        reader.readAsDataURL(file);
+
+        // Reset input value to allow selecting the same file again
+        e.target.value = '';
+    };
+
 
     const handleEmployeesFile = (content: string | ArrayBuffer) => {
         try {
@@ -151,17 +234,52 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         }
     };
 
-    const handleConfirmEmployees = () => {
+    const handleImportEmployees = () => {
         if (pendingEmployees) {
             onUpdateEmployees(pendingEmployees);
             setPendingEmployees(null);
         }
     };
 
-    const handleConfirmPrizes = () => {
+    const handleImportPrizes = () => {
         if (pendingPrizes) {
             onUpdatePrizes(pendingPrizes);
             setPendingPrizes(null);
+        }
+    };
+
+    const handleResetAll = () => {
+        onResetAll();
+    };
+
+    const handleSaveApiUrl = () => {
+        saveApiUrl(apiUrl);
+        alert('雲端 API 設定已儲存');
+    };
+
+    const handleManualSync = async () => {
+        if (!apiUrl) {
+            alert('請先設定雲端 API 連結');
+            return;
+        }
+        setSyncStatus('syncing');
+        setSyncMessage('正在同步資料到雲端...');
+
+        try {
+            // 同步員工
+            const empRes = await cloudLotteryAPI.syncEmployees(currentEmployees);
+            if (!empRes.success) throw new Error('同步員工資料失敗: ' + empRes.error);
+
+            // 同步獎項
+            const prizeRes = await cloudLotteryAPI.syncPrizes(currentPrizes);
+            if (!prizeRes.success) throw new Error('同步獎項資料失敗: ' + prizeRes.error);
+
+            setSyncStatus('success');
+            setSyncMessage('同步完成！您現在可以使用 QR Code 查獎。');
+        } catch (error) {
+            console.error('Manual sync failed:', error);
+            setSyncStatus('error');
+            setSyncMessage(String(error));
         }
     };
 
@@ -200,16 +318,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     };
 
     return (
-        <div
-            className="fixed inset-0 z-[90] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={onClose}
-        >
-            <div className="bg-gradient-to-b from-[#2a0a12] to-[#1a0510] w-full max-w-4xl max-h-[90vh] rounded-2xl border border-amber-500/30 shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+            {/* Backdrop 遮罩層 - 改為兄弟節點以防止冒泡問題 */}
+            <div
+                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                onClick={onClose}
+            />
+
+            {/* Modal 主體 */}
+            <div className="relative bg-gradient-to-b from-[#2a0a12] to-[#1a0510] w-full max-w-4xl max-h-[90vh] rounded-2xl border border-amber-500/30 shadow-2xl overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-amber-500/20">
                     <h2 className="text-2xl font-bold text-amber-300">📋 資料管理</h2>
                     <button
-                        onClick={onClose}
+                        onClick={(e) => { e.preventDefault(); onClose(); }}
                         className="p-2 text-amber-400/60 hover:text-amber-300 hover:bg-amber-500/10 rounded-lg transition-colors"
                     >
                         <X size={24} />
@@ -305,7 +427,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 <div className="space-y-4">
                                     <DataPreview type="employees" employees={pendingEmployees} />
                                     <button
-                                        onClick={handleConfirmEmployees}
+                                        onClick={handleImportEmployees}
                                         className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-3 rounded-xl transition-all"
                                     >
                                         <Check size={18} />
@@ -322,13 +444,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                if (confirm('確定要清除所有員工資料嗎？這也會清除中獎紀錄。')) {
+                                                if (window.confirm('確定要清除所有員工資料嗎？這也會清除中獎紀錄。')) {
                                                     onResetEmployees();
                                                 }
                                             }}
-                                            className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1 transition-colors"
+                                            className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg transition-colors text-sm"
                                         >
-                                            <Trash2 size={14} /> 清除員工
+                                            <Trash2 size={16} />
+                                            清除員工
                                         </button>
                                     </div>
                                     <DataPreview type="employees" employees={currentEmployees} />
@@ -346,6 +469,66 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 onError={(err) => setErrors([err])}
                             />
 
+                            <div className="bg-black/30 border border-amber-500/20 rounded-xl p-4 space-y-4">
+                                <h3 className="text-amber-300 font-medium flex items-center gap-2">
+                                    <Plus size={16} /> 手動新增獎項
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input
+                                        type="text"
+                                        placeholder="獎項名稱 (Example: 特獎 - iPhone 16)"
+                                        value={newPrizeName}
+                                        onChange={(e) => setNewPrizeName(e.target.value)}
+                                        className="bg-black/40 border border-amber-500/30 rounded px-3 py-2 text-white placeholder:text-amber-500/30 focus:outline-none focus:border-amber-500"
+                                    />
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="number"
+                                            placeholder="總數量"
+                                            value={newPrizeCount}
+                                            onChange={(e) => setNewPrizeCount(e.target.value === '' ? '' : Number(e.target.value))}
+                                            className="w-1/2 bg-black/40 border border-amber-500/30 rounded px-3 py-2 text-white placeholder:text-amber-500/30 focus:outline-none focus:border-amber-500"
+                                        />
+                                        <div className="w-1/2 relative">
+                                            <input
+                                                type="number"
+                                                placeholder="每輪抽幾人"
+                                                value={newPrizeCountPerRound}
+                                                onChange={(e) => setNewPrizeCountPerRound(Number(e.target.value))}
+                                                className="w-full bg-black/40 border border-amber-500/30 rounded px-3 py-2 text-white placeholder:text-amber-500/30 focus:outline-none focus:border-amber-500"
+                                            />
+                                            <span className="absolute right-2 top-2 text-xs text-amber-500/50 pointer-events-none">/ 輪</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="圖示 (Emoji / URL)"
+                                            value={newPrizeIcon}
+                                            onChange={(e) => setNewPrizeIcon(e.target.value)}
+                                            className="w-1/3 bg-black/40 border border-amber-500/30 rounded px-3 py-2 text-white placeholder:text-amber-500/30 focus:outline-none focus:border-amber-500 text-center"
+                                        />
+                                        <select
+                                            value={newPrizeType}
+                                            onChange={(e) => setNewPrizeType(e.target.value as PrizeType)}
+                                            className="w-2/3 bg-black/40 border border-amber-500/30 rounded px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                                        >
+                                            <option value="single">單人揭曉 (Single)</option>
+                                            <option value="batch">多人揭曉 (Batch)</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <button
+                                            onClick={handleAddPrize}
+                                            className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <Plus size={16} />
+                                            加入清單
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Download Sample */}
                             <button
                                 onClick={() => downloadSample('prizes')}
@@ -360,7 +543,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 <div className="space-y-4">
                                     <DataPreview type="prizes" prizes={pendingPrizes} />
                                     <button
-                                        onClick={handleConfirmPrizes}
+                                        onClick={handleImportPrizes}
                                         className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-3 rounded-xl transition-all"
                                     >
                                         <Check size={18} />
@@ -377,16 +560,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                if (confirm('確定要清除所有獎品資料嗎？這也會清除中獎紀錄。')) {
+                                                if (window.confirm('確定要清除所有獎品資料嗎？這也會清除中獎紀錄。')) {
                                                     onResetPrizes();
                                                 }
                                             }}
-                                            className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1 transition-colors"
+                                            className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg transition-colors text-sm"
                                         >
-                                            <Trash2 size={14} /> 清除獎項
+                                            <Trash2 size={16} />
+                                            清除獎項
                                         </button>
                                     </div>
-                                    <DataPreview type="prizes" prizes={currentPrizes} />
+                                    <DataPreview type="prizes" prizes={currentPrizes} winners={winners} />
                                 </div>
                             )}
                         </>
@@ -400,7 +584,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            if (winners.length > 0 && confirm('確定要清除所有中獎紀錄嗎？此動作無法復原。')) {
+                                            if (winners.length > 0 && window.confirm('確定要清除所有中獎紀錄嗎？此動作無法復原。')) {
                                                 onResetWinners();
                                             }
                                         }}
@@ -531,7 +715,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            if (confirm('確定要清除已上傳的背景音樂嗎？')) {
+                                            if (window.confirm('確定要清除已上傳的背景音樂嗎？')) {
                                                 onResetBGM();
                                             }
                                         }}
@@ -626,111 +810,198 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                             </section>
 
-                            <section className="space-y-4 pt-4 border-t border-amber-500/10">
-                                <div className="flex items-center gap-2 text-sky-300 font-bold">
+                            <section className="space-y-4">
+                                <div className="flex items-center gap-2 text-amber-400 font-bold">
                                     <Cloud size={20} />
-                                    <h3>雲端同步 (Cloudflare D1)</h3>
+                                    <h3>雲端同步設定</h3>
                                 </div>
-                                <p className="text-sm text-amber-200/60 leading-relaxed">
-                                    將本地資料同步到雲端，讓多台裝置可以共享相同的員工與獎項名單。
-                                </p>
-                                <div className="p-4 bg-sky-900/10 border border-sky-500/20 rounded-xl space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-xs text-sky-300">員工：{currentEmployees.length} 人</p>
-                                            <p className="text-xs text-sky-300">獎項：{currentPrizes.length} 項</p>
+                                <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs text-amber-300/70 block">Cloud API Endpoint URL</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={apiUrl}
+                                                onChange={(e) => setApiUrlState(e.target.value)}
+                                                placeholder="https://your-worker.workers.dev"
+                                                className="flex-1 bg-black/40 border border-amber-500/30 rounded px-3 py-2 text-sm text-amber-100 focus:outline-none focus:border-amber-500"
+                                            />
+                                            <button
+                                                onClick={handleSaveApiUrl}
+                                                className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded text-xs transition-colors"
+                                            >
+                                                儲存
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={async () => {
-                                                setIsSyncing(true);
-                                                setSyncStatus('idle');
-                                                try {
-                                                    await cloudLotteryAPI.syncEmployees(currentEmployees);
-                                                    await cloudLotteryAPI.syncPrizes(currentPrizes);
-                                                    setSyncStatus('success');
-                                                } catch {
-                                                    setSyncStatus('error');
-                                                }
-                                                setIsSyncing(false);
-                                            }}
-                                            disabled={isSyncing}
-                                            className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 disabled:bg-sky-800 text-white text-xs px-4 py-2 rounded border border-sky-500/30 transition-colors"
-                                        >
-                                            <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
-                                            {isSyncing ? '同步中...' : '同步到雲端'}
-                                        </button>
+                                        <p className="text-[10px] text-amber-300/40">
+                                            填寫您自行部署的 Cloudflare Worker 網址。若留空則僅使用本地模式（無法查獎）。
+                                        </p>
                                     </div>
-                                    {syncStatus === 'success' && (
-                                        <p className="text-xs text-green-400 flex items-center gap-1">
-                                            <Check size={14} /> 同步成功！
-                                        </p>
-                                    )}
-                                    {syncStatus === 'error' && (
-                                        <p className="text-xs text-red-400 flex items-center gap-1">
-                                            <AlertTriangle size={14} /> 同步失敗，請檢查網路連線
-                                        </p>
+
+                                    {apiUrl && (
+                                        <div className="pt-2 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs text-amber-300/70 font-medium">數據手動同步</span>
+                                                <button
+                                                    onClick={handleManualSync}
+                                                    disabled={syncStatus === 'syncing'}
+                                                    className="flex items-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 px-4 py-2 rounded-lg transition-colors text-xs disabled:opacity-50"
+                                                >
+                                                    <RefreshCw size={14} className={syncStatus === 'syncing' ? 'animate-spin' : ''} />
+                                                    {syncStatus === 'syncing' ? '同步中...' : '同步資料到雲端'}
+                                                </button>
+                                            </div>
+                                            {syncMessage && (
+                                                <p className={`text-[10px] ${syncStatus === 'error' ? 'text-red-400' : 'text-green-400'}`}>
+                                                    {syncMessage}
+                                                </p>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             </section>
 
-                            <section className="space-y-4 pt-4 border-t border-amber-500/10">
-                                <div className="flex items-center gap-2 text-purple-300 font-bold">
-                                    <QrCode size={20} />
-                                    <h3>QR Code 中獎查詢</h3>
-                                </div>
-                                <p className="text-sm text-amber-200/60 leading-relaxed">
-                                    將此 QR Code 投影或列印，讓參與者描描即可查詢自己的中獎結果。
-                                </p>
-                                <div className="p-4 bg-purple-900/10 border border-purple-500/20 rounded-xl">
-                                    <div className="flex items-center gap-6">
-                                        <div className="bg-white p-3 rounded-xl">
-                                            <QRCodeSVG
-                                                value={`${window.location.origin}/check`}
-                                                size={120}
-                                                level="H"
-                                            />
+                            {apiUrl && (
+                                <section className="space-y-4">
+                                    <div className="flex items-center gap-2 text-purple-400 font-bold">
+                                        <QrCode size={20} />
+                                        <h3>掃碼查獎二維碼</h3>
+                                    </div>
+                                    <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-xl">
+                                        <div className="flex flex-col md:flex-row items-center gap-6">
+                                            <div className="bg-white p-2 rounded-lg shadow-xl shrink-0">
+                                                <QRCodeSVG
+                                                    value={`${apiUrl}/check`}
+                                                    size={160}
+                                                    level="H"
+                                                    includeMargin={true}
+                                                />
+                                            </div>
+                                            <div className="flex-1 space-y-3">
+                                                <p className="text-xs text-purple-200/70">
+                                                    將此 QR Code 公佈給參加者。他們可以掃描查詢自己的中獎狀態。
+                                                    查獎頁面網址為：
+                                                </p>
+                                                <div className="p-2 bg-black/40 rounded border border-purple-500/30">
+                                                    <p className="text-xs text-purple-300 break-all">
+                                                        {apiUrl}/check
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        const canvas = document.createElement('canvas');
+                                                        const svg = document.querySelector('.qr-code-section svg') as SVGElement;
+                                                        if (!svg) return;
+
+                                                        const svgData = new XMLSerializer().serializeToString(svg);
+                                                        const img = new Image();
+                                                        img.onload = () => {
+                                                            canvas.width = 400;
+                                                            canvas.height = 400;
+                                                            const ctx = canvas.getContext('2d');
+                                                            if (ctx) {
+                                                                ctx.fillStyle = 'white';
+                                                                ctx.fillRect(0, 0, 400, 400);
+                                                                ctx.drawImage(img, 0, 0, 400, 400);
+                                                                const link = document.createElement('a');
+                                                                link.download = 'lottery-check-qr.png';
+                                                                link.href = canvas.toDataURL('image/png');
+                                                                link.click();
+                                                            }
+                                                        };
+                                                        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+                                                    }}
+                                                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white text-xs px-4 py-2 rounded transition-colors"
+                                                >
+                                                    <Download size={14} />
+                                                    下載連結圖檔
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="flex-1 space-y-2">
-                                            <p className="text-xs text-purple-300 break-all">
-                                                {window.location.origin}/check
-                                            </p>
-                                            <button
-                                                onClick={() => {
-                                                    const svg = document.querySelector('.qr-code-container svg');
-                                                    if (!svg) return;
-                                                    const svgData = new XMLSerializer().serializeToString(svg);
-                                                    const canvas = document.createElement('canvas');
-                                                    canvas.width = 400;
-                                                    canvas.height = 400;
-                                                    const ctx = canvas.getContext('2d');
-                                                    const img = new Image();
-                                                    img.onload = () => {
-                                                        if (ctx) {
-                                                            ctx.fillStyle = 'white';
-                                                            ctx.fillRect(0, 0, 400, 400);
-                                                            ctx.drawImage(img, 0, 0, 400, 400);
-                                                            const pngUrl = canvas.toDataURL('image/png');
-                                                            const a = document.createElement('a');
-                                                            a.href = pngUrl;
-                                                            a.download = 'qrcode-lottery-check.png';
-                                                            a.click();
-                                                        }
-                                                    };
-                                                    img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
-                                                }}
-                                                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white text-xs px-4 py-2 rounded transition-colors"
-                                            >
-                                                <Download size={14} />
-                                                下載 QR Code
-                                            </button>
+                                        <div className="qr-code-section hidden">
+                                            <QRCodeSVG value={`${apiUrl}/check`} size={400} level="H" />
                                         </div>
                                     </div>
-                                    <div className="qr-code-container hidden">
-                                        <QRCodeSVG
-                                            value={`${window.location.origin}/check`}
-                                            size={400}
-                                            level="H"
-                                        />
+                                </section>
+                            )}
+
+                            <section className="space-y-4">
+                                <div className="flex items-center gap-2 text-amber-300 font-bold border-b border-amber-500/20 pb-2">
+                                    <span className="text-xl">🖼️</span>
+                                    <h3>活動識別設定</h3>
+                                </div>
+                                <p className="text-sm text-amber-200/60 leading-relaxed">
+                                    自訂左上角的活動 Logo，支援透明背景圖片。
+                                </p>
+
+                                <div className="bg-black/30 border border-amber-500/20 rounded-2xl p-6 flex items-start gap-6">
+                                    {/* Logo Preview */}
+                                    <div className="shrink-0">
+                                        <div className="w-24 h-24 bg-white/5 rounded-lg border border-white/10 flex items-center justify-center overflow-hidden relative group">
+                                            {/* Checkerboard background for transparency */}
+                                            <div className="absolute inset-0 opacity-20"
+                                                style={{ backgroundImage: 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px' }}></div>
+
+                                            {customLogo ? (
+                                                <img src={customLogo} alt="Logo Preview" className="w-full h-full object-contain relative z-10 p-2" />
+                                            ) : (
+                                                <span className="text-amber-500/30 text-xs relative z-10">預設 Logo</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex-1 space-y-4">
+                                        <div className="space-y-2">
+                                            <div className="flex gap-3">
+                                                <label className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold rounded-lg cursor-pointer transition-all shadow-md flex items-center gap-2">
+                                                    <Upload size={14} />
+                                                    上傳新圖片
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={handleLogoUpload}
+                                                    />
+                                                </label>
+                                                {customLogo && (
+                                                    <button
+                                                        onClick={onResetCustomLogo}
+                                                        className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-sm font-bold rounded-lg transition-all border border-red-500/20 flex items-center gap-2"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                        恢復預設
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="text-xs text-amber-500/50 space-y-1">
+                                                <p>• 建議比例：1:1 (正方形)</p>
+                                                <p>• 建議尺寸：200x200 像素以上</p>
+                                                <p>• 支援格式：PNG, SVG, JPG (推薦透明背景 PNG)</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4 pt-4 border-t border-amber-500/10">
+                                            <div className="space-y-2">
+                                                <label className="text-xs text-amber-300 font-bold block">活動主標題</label>
+                                                <input
+                                                    type="text"
+                                                    value={eventTitle || ''}
+                                                    onChange={(e) => onUpdateEventTitle?.(e.target.value)}
+                                                    placeholder="例如：2026 紫氣東來・尾牙盛典"
+                                                    className="w-full bg-black/40 border border-amber-500/30 rounded-lg px-3 py-2 text-amber-100 text-sm focus:outline-none focus:border-amber-400 font-bold tracking-wider"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs text-amber-300 font-bold block">活動副標題</label>
+                                                <input
+                                                    type="text"
+                                                    value={eventSubtitle || ''}
+                                                    onChange={(e) => onUpdateEventSubtitle?.(e.target.value)}
+                                                    placeholder="例如：年終聯歡晚會"
+                                                    className="w-full bg-black/40 border border-amber-500/30 rounded-lg px-3 py-2 text-amber-100 text-sm focus:outline-none focus:border-amber-400 tracking-widest"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </section>
@@ -745,8 +1016,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            if (confirm('確定要清除所有資料並重置系統嗎？此動作無法復原。')) {
-                                                onResetAll();
+                                            if (window.confirm('確定要清除所有資料並重置系統嗎？此動作無法復原。')) {
+                                                handleResetAll();
                                             }
                                         }}
                                         className="bg-red-900/40 hover:bg-red-800 text-red-200 text-xs px-4 py-2 rounded border border-red-500/30 transition-colors"
@@ -760,19 +1031,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between px-6 py-4 border-t border-amber-500/20 bg-black/20">
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (confirm('確定要清除所有資料並重置系統嗎？此動作無法復原。')) {
-                                onResetAll();
-                            }
-                        }}
-                        className="flex items-center gap-2 text-red-400/70 hover:text-red-300 text-sm transition-colors"
-                    >
-                        <Trash2 size={14} />
-                        重置所有資料
-                    </button>
+                <div className="flex items-center justify-end px-6 py-4 border-t border-amber-500/20 bg-black/20">
                     <button
                         onClick={onClose}
                         className="px-6 py-2 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg transition-colors"

@@ -1,9 +1,10 @@
 // 抽獎 API 介面層 (支援雲端 + 本地混合模式)
 import type { Employee, Prize, Winner, ApiResponse } from '../types';
 import { MOCK_EMPLOYEES, MOCK_PRIZES, getMockWinners, addMockWinner, clearMockWinners } from './mockData';
+import { loadApiUrl } from '../utils/storage';
 
-/** 雲端 API 網址 */
-const CLOUD_API_URL = 'https://festive-lottery-api.hihi831.workers.dev';
+/** 動態獲取雲端 API 網址 */
+const getCloudApiUrl = () => loadApiUrl();
 
 /** API 介面定義 */
 export interface LotteryAPI {
@@ -12,6 +13,8 @@ export interface LotteryAPI {
     getWinners(): Promise<ApiResponse<Winner[]>>;
     saveWinner(winner: Winner): Promise<ApiResponse<void>>;
     resetWinners(): Promise<ApiResponse<void>>;
+    resetEmployees(): Promise<ApiResponse<void>>;
+    resetPrizes(): Promise<ApiResponse<void>>;
     syncEmployees(employees: Employee[]): Promise<ApiResponse<void>>;
     syncPrizes(prizes: Prize[]): Promise<ApiResponse<void>>;
 }
@@ -49,6 +52,18 @@ export const mockLotteryAPI: LotteryAPI = {
         return { success: true };
     },
 
+    async resetEmployees(): Promise<ApiResponse<void>> {
+        await simulateDelay();
+        clearMockWinners();
+        return { success: true };
+    },
+
+    async resetPrizes(): Promise<ApiResponse<void>> {
+        await simulateDelay();
+        clearMockWinners();
+        return { success: true };
+    },
+
     async syncEmployees(): Promise<ApiResponse<void>> {
         return { success: true };
     },
@@ -62,7 +77,9 @@ export const mockLotteryAPI: LotteryAPI = {
 export const cloudLotteryAPI: LotteryAPI = {
     async getEmployees(): Promise<ApiResponse<Employee[]>> {
         try {
-            const res = await fetch(`${CLOUD_API_URL}/api/employees`);
+            const url = getCloudApiUrl();
+            if (!url) return { success: false, error: 'Cloud API URL not configured' };
+            const res = await fetch(`${url}/api/employees`);
             const json = await res.json();
             return { success: json.success, data: json.data || [] };
         } catch (error) {
@@ -73,7 +90,9 @@ export const cloudLotteryAPI: LotteryAPI = {
 
     async getPrizes(): Promise<ApiResponse<Prize[]>> {
         try {
-            const res = await fetch(`${CLOUD_API_URL}/api/prizes`);
+            const url = getCloudApiUrl();
+            if (!url) return { success: false, error: 'Cloud API URL not configured' };
+            const res = await fetch(`${url}/api/prizes`);
             const json = await res.json();
             return { success: json.success, data: json.data || [] };
         } catch (error) {
@@ -84,7 +103,9 @@ export const cloudLotteryAPI: LotteryAPI = {
 
     async getWinners(): Promise<ApiResponse<Winner[]>> {
         try {
-            const res = await fetch(`${CLOUD_API_URL}/api/winners`);
+            const url = getCloudApiUrl();
+            if (!url) return { success: false, error: 'Cloud API URL not configured' };
+            const res = await fetch(`${url}/api/winners`);
             const json = await res.json();
             // 轉換格式：雲端返回的是展開的資料，需轉換回 Winner 格式
             const winners: Winner[] = (json.data || []).map((w: any) => ({
@@ -105,7 +126,9 @@ export const cloudLotteryAPI: LotteryAPI = {
 
     async saveWinner(winner: Winner): Promise<ApiResponse<void>> {
         try {
-            const res = await fetch(`${CLOUD_API_URL}/api/winners`, {
+            const url = getCloudApiUrl();
+            if (!url) return { success: false, error: 'Cloud API URL not configured' };
+            const res = await fetch(`${url}/api/winners`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -123,7 +146,9 @@ export const cloudLotteryAPI: LotteryAPI = {
 
     async resetWinners(): Promise<ApiResponse<void>> {
         try {
-            const res = await fetch(`${CLOUD_API_URL}/api/winners`, { method: 'DELETE' });
+            const url = getCloudApiUrl();
+            if (!url) return { success: false, error: 'Cloud API URL not configured' };
+            const res = await fetch(`${url}/api/winners`, { method: 'DELETE' });
             const json = await res.json();
             return { success: json.success };
         } catch (error) {
@@ -132,9 +157,39 @@ export const cloudLotteryAPI: LotteryAPI = {
         }
     },
 
+    async resetEmployees(): Promise<ApiResponse<void>> {
+        try {
+            const url = getCloudApiUrl();
+            if (!url) return { success: false, error: 'Cloud API URL not configured' };
+            const res = await fetch(`${url}/api/employees`, { method: 'DELETE' });
+            const json = await res.json();
+            console.log('[Cloud API] Employees cleared');
+            return { success: json.success };
+        } catch (error) {
+            console.error('[Cloud API] resetEmployees failed:', error);
+            return { success: false, error: String(error) };
+        }
+    },
+
+    async resetPrizes(): Promise<ApiResponse<void>> {
+        try {
+            const url = getCloudApiUrl();
+            if (!url) return { success: false, error: 'Cloud API URL not configured' };
+            const res = await fetch(`${url}/api/prizes`, { method: 'DELETE' });
+            const json = await res.json();
+            console.log('[Cloud API] Prizes cleared');
+            return { success: json.success };
+        } catch (error) {
+            console.error('[Cloud API] resetPrizes failed:', error);
+            return { success: false, error: String(error) };
+        }
+    },
+
     async syncEmployees(employees: Employee[]): Promise<ApiResponse<void>> {
         try {
-            const res = await fetch(`${CLOUD_API_URL}/api/employees`, {
+            const url = getCloudApiUrl();
+            if (!url) return { success: false, error: 'Cloud API URL not configured' };
+            const res = await fetch(`${url}/api/employees`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ employees }),
@@ -150,7 +205,9 @@ export const cloudLotteryAPI: LotteryAPI = {
 
     async syncPrizes(prizes: Prize[]): Promise<ApiResponse<void>> {
         try {
-            const res = await fetch(`${CLOUD_API_URL}/api/prizes`, {
+            const url = getCloudApiUrl();
+            if (!url) return { success: false, error: 'Cloud API URL not configured' };
+            const res = await fetch(`${url}/api/prizes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prizes }),
@@ -207,6 +264,18 @@ export const hybridLotteryAPI: LotteryAPI = {
         return { success: true };
     },
 
+    async resetEmployees() {
+        await cloudLotteryAPI.resetEmployees();
+        clearMockWinners();
+        return { success: true };
+    },
+
+    async resetPrizes() {
+        await cloudLotteryAPI.resetPrizes();
+        clearMockWinners();
+        return { success: true };
+    },
+
     async syncEmployees(employees: Employee[]) {
         return cloudLotteryAPI.syncEmployees(employees);
     },
@@ -224,6 +293,6 @@ export const hybridLotteryAPI: LotteryAPI = {
  */
 export const lotteryAPI: LotteryAPI = hybridLotteryAPI;
 
-/** 直接使用雲端 API (用於手動同步) */
-export { CLOUD_API_URL };
+/** 直接獲取目前配置的雲端 API 網址 (用於顯示 QR Code) */
+export const getCurrentCloudApiUrl = () => getCloudApiUrl();
 

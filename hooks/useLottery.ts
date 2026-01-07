@@ -5,11 +5,13 @@ import { lotteryAPI } from '../api/lottery';
 import { generatePrizeIntro, generateWinnerComment, setAIConfig } from '../api/ai';
 import { DEFAULT_CONFIG } from '../constants';
 import {
-    saveEmployees, loadEmployees,
     savePrizes, loadPrizes,
     saveWinners, loadWinners,
     clearAllData, saveAIConfig, loadAIConfig,
-    clearEmployees, clearPrizes, clearWinners as storageClearWinners,
+    saveCustomLogo, loadCustomLogo, clearCustomLogo,
+    saveEventTitle, loadEventTitle, saveEventSubtitle, loadEventSubtitle,
+    saveEmployees, loadEmployees, clearEmployees,
+    clearPrizes, clearWinners as storageClearWinners,
 } from '../utils/storage';
 import { soundManager } from '../utils/sound';
 import { loadBGMFile } from '../utils/db';
@@ -32,6 +34,9 @@ export interface UseLotteryReturn {
     isAiLoading: boolean;
     soundEnabled: boolean;
     aiConfig: AIConfig;
+    customLogo: string | null;
+    eventTitle: string;
+    eventSubtitle: string;
 
     // Actions
     setPhase: (phase: Phase) => void;
@@ -53,7 +58,12 @@ export interface UseLotteryReturn {
     resetEmployees: () => void;
     resetPrizes: () => void;
     resetWinners: () => void;
+    resetWinners: () => void;
     resetBGM: () => void;
+    updateCustomLogo: (logoData: string) => void;
+    resetCustomLogo: () => void;
+    updateEventTitle: (title: string) => void;
+    updateEventSubtitle: (subtitle: string) => void;
 }
 
 export const useLottery = (): UseLotteryReturn => {
@@ -76,6 +86,9 @@ export const useLottery = (): UseLotteryReturn => {
         geminiKey: '',
         openaiKey: '',
     });
+    const [customLogo, setCustomLogo] = useState<string | null>(null);
+    const [eventTitle, setEventTitle] = useState(`${DEFAULT_CONFIG.eventYear} ${DEFAULT_CONFIG.eventName}`);
+    const [eventSubtitle, setEventSubtitle] = useState('年終聯歡晚會');
 
     const rollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -89,23 +102,23 @@ export const useLottery = (): UseLotteryReturn => {
             const storedPrizes = loadPrizes();
             const storedWinners = loadWinners();
 
-            if (storedEmployees && storedEmployees.length > 0) {
+            if (storedEmployees !== null) {
                 setEmployees(storedEmployees);
             } else {
-                // 從 API 載入預設資料
-                const empRes = await lotteryAPI.getEmployees();
-                if (empRes.success && empRes.data) setEmployees(empRes.data);
+                // 初次使用，預設為空
+                setEmployees([]);
             }
 
-            if (storedPrizes && storedPrizes.length > 0) {
+            if (storedPrizes !== null) {
                 setPrizes(storedPrizes);
             } else {
-                const prizeRes = await lotteryAPI.getPrizes();
-                if (prizeRes.success && prizeRes.data) setPrizes(prizeRes.data);
+                setPrizes([]);
             }
 
-            if (storedWinners && storedWinners.length > 0) {
+            if (storedWinners !== null) {
                 setWinners(storedWinners);
+            } else {
+                setWinners([]);
             }
 
             // 載入 BGM
@@ -120,6 +133,19 @@ export const useLottery = (): UseLotteryReturn => {
                 setAIConfigState(savedAIConfig);
                 setAIConfig(savedAIConfig);
             }
+
+            // 載入 Custom Logo
+            const savedLogo = loadCustomLogo();
+            if (savedLogo) {
+                setCustomLogo(savedLogo);
+            }
+
+            // 載入標題設定
+            const savedTitle = loadEventTitle();
+            if (savedTitle) setEventTitle(savedTitle);
+
+            const savedSubtitle = loadEventSubtitle();
+            if (savedSubtitle) setEventSubtitle(savedSubtitle);
         };
         loadData();
     }, []);
@@ -197,7 +223,8 @@ export const useLottery = (): UseLotteryReturn => {
         if (remaining <= 0) return 0;
 
         const target = currentPrize.countPerRound || (currentPrize.type === 'batch' ? currentPrize.count : 1);
-        return Math.min(target, remaining);
+        // 單次抽獎上限限制為 12 人
+        return Math.min(target, remaining, 12);
     }, [currentPrize, winners]);
 
     const startCountdown = useCallback(() => {
@@ -205,7 +232,13 @@ export const useLottery = (): UseLotteryReturn => {
 
         const eligible = getEligibleEmployees();
         const countToDraw = getCountToDraw();
-        if (eligible.length < countToDraw || countToDraw === 0) {
+        if (countToDraw === 0) {
+            alert('此獎項已全數抽完！請切換至下一個獎項。');
+            return;
+        }
+
+        if (eligible.length < countToDraw) {
+            alert(`候選人不足！\n目前可抽人數：${eligible.length} 人\n本輪需抽出：${countToDraw} 人\n請檢查是否所有人均已中獎。`);
             console.warn('候選人不足或獎項已抽完！');
             return;
         }
@@ -330,9 +363,16 @@ export const useLottery = (): UseLotteryReturn => {
 
         setIsAiLoading(true);
         setAiCommentary('');
-        const text = await generatePrizeIntro(currentPrize.name);
-        setAiCommentary(text);
-        setIsAiLoading(false);
+        try {
+            const text = await generatePrizeIntro(currentPrize.name);
+            setAiCommentary(text);
+        } catch (error: any) {
+            console.error('AI Gen Error:', error);
+            setAiCommentary('福星高照，財源廣進！');
+            alert(`AI 生成失敗：${error.message}`);
+        } finally {
+            setIsAiLoading(false);
+        }
     }, [currentPrize, isAiLoading, aiCommentary]);
 
     const generateWinnerAI = useCallback(async () => {
@@ -344,13 +384,20 @@ export const useLottery = (): UseLotteryReturn => {
 
         setIsAiLoading(true);
         setAiCommentary('');
-        const text = await generateWinnerComment(
-            lastWinner.employee.name,
-            lastWinner.employee.dept,
-            currentPrize.name
-        );
-        setAiCommentary(text);
-        setIsAiLoading(false);
+        try {
+            const text = await generateWinnerComment(
+                lastWinner.employee.name,
+                lastWinner.employee.dept,
+                currentPrize.name
+            );
+            setAiCommentary(text);
+        } catch (error: any) {
+            console.error('AI Gen Error:', error);
+            setAiCommentary('福星高照，財源廣進！');
+            alert(`AI 生成失敗：${error.message}`);
+        } finally {
+            setIsAiLoading(false);
+        }
     }, [winners, currentPrize, isAiLoading]);
 
     // 動態更新員工資料
@@ -373,25 +420,24 @@ export const useLottery = (): UseLotteryReturn => {
         setPhase('standby');
     }, []);
 
+
     // 清除單項資料
     const resetEmployees = useCallback(() => {
         clearEmployees();
-        import('../api/lottery').then(({ mockLotteryAPI }) => {
-            mockLotteryAPI.getEmployees().then(res => {
-                if (res.success && res.data) setEmployees(res.data);
-            });
-        });
+        lotteryAPI.resetEmployees(); // 清除雲端資料
+        setEmployees([]);
         setWinners([]);
+        saveWinners([]);
+        lastSyncedCount.current = 0;
     }, []);
 
     const resetPrizes = useCallback(() => {
         clearPrizes();
-        import('../api/lottery').then(({ mockLotteryAPI }) => {
-            mockLotteryAPI.getPrizes().then(res => {
-                if (res.success && res.data) setPrizes(res.data);
-            });
-        });
+        lotteryAPI.resetPrizes(); // 清除雲端資料
+        setPrizes([]);
         setWinners([]);
+        saveWinners([]);
+        lastSyncedCount.current = 0;
     }, []);
 
     const resetWinnersData = useCallback(() => {
@@ -408,23 +454,39 @@ export const useLottery = (): UseLotteryReturn => {
         });
     }, []);
 
-    // 清除所有儲存的資料
+    const updateCustomLogo = useCallback((logoData: string) => {
+        setCustomLogo(logoData);
+        saveCustomLogo(logoData);
+    }, []);
+
+    const resetCustomLogo = useCallback(() => {
+        setCustomLogo(null);
+        clearCustomLogo();
+    }, []);
+
+    const updateEventTitle = useCallback((title: string) => {
+        setEventTitle(title);
+        saveEventTitle(title);
+    }, []);
+
+    const updateEventSubtitle = useCallback((subtitle: string) => {
+        setEventSubtitle(subtitle);
+        saveEventSubtitle(subtitle);
+    }, []);
+
+    // 清除所有儲存的資料 (重置為空狀態)
     const clearStoredData = useCallback(() => {
         clearAllData();
         // 清除雲端中獎紀錄
         lotteryAPI.resetWinners();
         // 重置同步計數
         lastSyncedCount.current = 0;
-        // 重新載入預設資料 (從 mock，不從雲端)
-        import('../api/lottery').then(({ mockLotteryAPI }) => {
-            mockLotteryAPI.getEmployees().then(res => {
-                if (res.success && res.data) setEmployees(res.data);
-            });
-            mockLotteryAPI.getPrizes().then(res => {
-                if (res.success && res.data) setPrizes(res.data);
-            });
-        });
+
+        // 全部設為空，不再載入 mock
+        setEmployees([]);
+        setPrizes([]);
         setWinners([]);
+
         setCurrentPrizeIndex(0);
         setPhase('standby');
         console.log('[Reset] All data cleared (local + cloud)');
@@ -447,6 +509,9 @@ export const useLottery = (): UseLotteryReturn => {
         isAiLoading,
         soundEnabled,
         aiConfig,
+        customLogo,
+        eventTitle,
+        eventSubtitle,
         setPhase,
         setSoundEnabled: (enabled: boolean) => {
             setSoundEnabled(enabled);
@@ -466,6 +531,10 @@ export const useLottery = (): UseLotteryReturn => {
         resetPrizes,
         resetWinners: resetWinnersData,
         resetBGM,
+        updateCustomLogo,
+        resetCustomLogo,
+        updateEventTitle,
+        updateEventSubtitle,
         updateAIConfig: (config: AIConfig) => {
             setAIConfigState(config);
             saveAIConfig(config);

@@ -1,7 +1,7 @@
 // AI 服務封裝 (支援 Gemini 與 OpenAI)
 import type { AIConfig } from '../types';
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 let aiConfig: AIConfig = {
@@ -23,7 +23,7 @@ export const generateContent = async (prompt: string): Promise<string> => {
 
     if (!apiKey) {
         console.warn(`[AI] ${provider} API key not set`);
-        return '福星高照，財源廣進！';
+        throw new Error(`${provider} API Key 未設定，請至後台設定。`);
     }
 
     console.log(`[AI] Calling ${provider} API...`);
@@ -41,11 +41,13 @@ export const generateContent = async (prompt: string): Promise<string> => {
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error(`[AI] Gemini API Error ${response.status}:`, errorData);
-                return '福星高照，財源廣進！';
+                throw new Error(`Gemini API 錯誤 (${response.status}): ${errorData.error?.message || response.statusText}`);
             }
 
             const data = await response.json();
-            const result = data.candidates?.[0]?.content?.parts?.[0]?.text || '福星高照，財源廣進！';
+            const result = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!result) throw new Error('Gemini 回傳資料格式錯誤');
+
             console.log('[AI] Gemini response:', result);
             return result;
         } else {
@@ -66,17 +68,19 @@ export const generateContent = async (prompt: string): Promise<string> => {
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error(`[AI] OpenAI API Error ${response.status}:`, errorData);
-                return '福星高照，財源廣進！';
+                throw new Error(`OpenAI API 錯誤 (${response.status}): ${errorData.error?.message || response.statusText}`);
             }
 
             const data = await response.json();
-            const result = data.choices?.[0]?.message?.content || '福星高照，財源廣進！';
+            const result = data.choices?.[0]?.message?.content;
+            if (!result) throw new Error('OpenAI 回傳資料格式錯誤');
+
             console.log('[AI] OpenAI response:', result);
             return result;
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error(`[AI] ${provider} Network Error:`, error);
-        return '連線繁忙，好運馬上到！';
+        throw error; // 重新拋出讓 UI 層處理
     }
 };
 

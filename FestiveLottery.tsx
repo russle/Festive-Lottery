@@ -2,7 +2,7 @@
 // 模組化版本 - 2026 紫氣東來・尾牙盛典抽獎系統
 
 import { useEffect, useState } from 'react';
-import { Settings } from 'lucide-react';
+import { Settings, ChevronRight } from 'lucide-react';
 
 // 匯入自訂 Hook
 import { useLottery } from './hooks/useLottery';
@@ -52,6 +52,11 @@ export default function FestiveLottery() {
 
   const lastWinner = lottery.winners[lottery.winners.length - 1];
 
+  /* 計算目前獎項已抽人數 */
+  const currentPrizeWinnersCount = lottery.currentPrize
+    ? lottery.winners.filter(w => w.prizeId === lottery.currentPrize!.id).length
+    : 0;
+
   return (
     <div className="relative w-full h-screen overflow-hidden bg-[#2a0a12] font-sans text-amber-50 selection:bg-amber-500/30">
       <FestiveBackground />
@@ -80,6 +85,13 @@ export default function FestiveLottery() {
           onResetPrizes={lottery.resetPrizes}
           onResetWinners={lottery.resetWinners}
           onResetBGM={lottery.resetBGM}
+          customLogo={lottery.customLogo}
+          onUpdateCustomLogo={lottery.updateCustomLogo}
+          onResetCustomLogo={lottery.resetCustomLogo}
+          eventTitle={lottery.eventTitle}
+          onUpdateEventTitle={lottery.updateEventTitle}
+          eventSubtitle={lottery.eventSubtitle}
+          onUpdateEventSubtitle={lottery.updateEventSubtitle}
           onClose={() => setShowAdmin(false)}
         />
       )}
@@ -95,24 +107,46 @@ export default function FestiveLottery() {
       {/* Header */}
       <header className="absolute top-0 left-0 w-full p-4 md:p-8 flex justify-between items-center z-30">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-red-900 shadow-lg shadow-amber-500/50 animate-bounce-slow">
-            <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-            </svg>
-          </div>
+          {lottery.customLogo ? (
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg shadow-amber-500/50 overflow-hidden p-1">
+              <img
+                src={lottery.customLogo}
+                alt="Logo"
+                className="w-full h-auto object-contain"
+              />
+            </div>
+          ) : (
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-red-900 shadow-lg shadow-amber-500/50 animate-bounce-slow">
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+              </svg>
+            </div>
+          )}
           <div className="flex flex-col">
             <h1 className="text-xl md:text-3xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-100 drop-shadow-md">
-              {DEFAULT_CONFIG.eventYear} {DEFAULT_CONFIG.eventName}
+              {lottery.eventTitle}
             </h1>
             <span className="text-[10px] md:text-sm text-amber-400/80 tracking-[0.5em] font-light hidden md:block">
-              PROSPERITY GALA
+              {lottery.eventSubtitle}
             </span>
           </div>
         </div>
         <div className="text-right">
-          <div className="text-xs text-amber-300/80 mb-1 tracking-widest uppercase">Current Prize</div>
-          <div className="text-sm md:text-xl font-bold text-white bg-red-900/40 px-4 py-1 md:px-6 md:py-2 rounded-full border border-amber-500/50 backdrop-blur-sm">
-            {lottery.currentPrize?.name || '載入中...'}
+          <div className="text-xs text-amber-300/80 mb-1 tracking-widest uppercase">目前抽獎獎項</div>
+          <div className="text-sm md:text-xl font-bold text-white bg-red-900/40 px-4 py-1 md:px-6 md:py-2 rounded-full border border-amber-500/50 backdrop-blur-sm flex items-center gap-2">
+            <span>{lottery.currentPrize?.name || '載入中...'}</span>
+            {lottery.currentPrize && (
+              <span className="text-amber-300 text-sm md:text-lg">
+                ({currentPrizeWinnersCount} / {lottery.currentPrize.count})
+              </span>
+            )}
+            <button
+              onClick={lottery.nextPrize}
+              className="ml-2 p-1 hover:bg-amber-500/20 rounded-full transition-colors text-amber-200 hover:text-white"
+              title="切換至下一個獎項"
+            >
+              <ChevronRight size={20} />
+            </button>
           </div>
         </div>
       </header>

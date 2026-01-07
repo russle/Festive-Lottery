@@ -7,6 +7,10 @@ const STORAGE_KEYS = {
     WINNERS: 'festive_lottery_winners',
     CONFIG: 'festive_lottery_config',
     AI_CONFIG: 'festive_lottery_ai_config',
+    API_URL: 'lottery_api_url',
+    CUSTOM_LOGO: 'lottery_custom_logo',
+    EVENT_TITLE: 'lottery_event_title',
+    EVENT_SUBTITLE: 'lottery_event_subtitle',
 };
 
 /**
@@ -137,3 +141,43 @@ export const loadAIConfig = (): AIConfig | null => {
     }
 };
 
+
+// API URL 儲存
+export const saveApiUrl = (url: string) => {
+    localStorage.setItem(STORAGE_KEYS.API_URL, url);
+};
+
+export const loadApiUrl = (): string | null => {
+    return localStorage.getItem(STORAGE_KEYS.API_URL);
+};
+
+// 自訂 Logo 儲存
+export const saveCustomLogo = (logoData: string) => {
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_LOGO, logoData);
+};
+
+export const loadCustomLogo = (): string | null => {
+    return localStorage.getItem(STORAGE_KEYS.CUSTOM_LOGO);
+};
+
+export const clearCustomLogo = () => {
+    localStorage.removeItem(STORAGE_KEYS.CUSTOM_LOGO);
+};
+
+// 活動標題儲存
+export const saveEventTitle = (title: string) => {
+    localStorage.setItem(STORAGE_KEYS.EVENT_TITLE, title);
+};
+
+export const loadEventTitle = (): string | null => {
+    return localStorage.getItem(STORAGE_KEYS.EVENT_TITLE);
+};
+
+// 活動副標題儲存
+export const saveEventSubtitle = (subtitle: string) => {
+    localStorage.setItem(STORAGE_KEYS.EVENT_SUBTITLE, subtitle);
+};
+
+export const loadEventSubtitle = (): string | null => {
+    return localStorage.getItem(STORAGE_KEYS.EVENT_SUBTITLE);
+};

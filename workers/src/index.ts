@@ -69,6 +69,13 @@ export default {
 
                     return jsonResponse({ success: true, count: employees.length });
                 }
+
+                if (method === 'DELETE') {
+                    // 刪除員工資料時，也要刪除相關的中獎紀錄
+                    await env.DB.prepare('DELETE FROM winners').run();
+                    await env.DB.prepare('DELETE FROM employees').run();
+                    return jsonResponse({ success: true });
+                }
             }
 
             // ========== PRIZES ==========
@@ -105,6 +112,13 @@ export default {
                     }
 
                     return jsonResponse({ success: true, count: prizes.length });
+                }
+
+                if (method === 'DELETE') {
+                    // 刪除獎品資料時，也要刪除相關的中獎紀錄
+                    await env.DB.prepare('DELETE FROM winners').run();
+                    await env.DB.prepare('DELETE FROM prizes').run();
+                    return jsonResponse({ success: true });
                 }
             }
 

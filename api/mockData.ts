@@ -13,10 +13,10 @@ export const generateMockEmployees = (count: number = 150): Employee[] => {
 };
 
 /** 預設員工資料 */
-export const MOCK_EMPLOYEES: Employee[] = generateMockEmployees(150);
+export const MOCK_EMPLOYEES: Employee[] = [];
 
 /** 預設獎項資料 */
-export const MOCK_PRIZES: Prize[] = [...DEFAULT_PRIZES];
+export const MOCK_PRIZES: Prize[] = [];
 
 /** 模擬中獎紀錄 (初始為空) */
 export let mockWinners: Winner[] = [];

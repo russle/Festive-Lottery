@@ -35,7 +35,7 @@ export const BatchRevealPhase: React.FC<BatchRevealPhaseProps> = ({
             `}
                     >
                         <div className="absolute inset-0 bg-gradient-to-t from-red-900/80 to-transparent" />
-                        <div className="text-3xl font-bold text-white mb-2 z-10">{winner.name}</div>
+                        <div className={`font-bold text-white mb-2 z-10 whitespace-nowrap ${winner.name.length > 3 ? 'text-2xl' : 'text-3xl'}`}>{winner.name}</div>
                         <div className="text-lg text-amber-300 z-10">{winner.dept}</div>
                         <div className="absolute top-2 right-2 text-amber-500/20">
                             <Sparkles size={24} />

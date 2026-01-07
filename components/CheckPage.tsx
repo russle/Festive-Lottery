@@ -1,7 +1,7 @@
 // 中獎查詢頁面 (手機用戶掃描 QR Code 後進入)
 import React, { useState } from 'react';
 import { Search, PartyPopper, Frown } from 'lucide-react';
-import { CLOUD_API_URL } from '../api/lottery';
+import { loadApiUrl } from '../utils/storage';
 
 interface WinRecord {
     prizeName: string;
@@ -34,7 +34,12 @@ export const CheckPage: React.FC = () => {
         setResult(null);
 
         try {
-            const res = await fetch(`${CLOUD_API_URL}/api/check/${encodeURIComponent(employeeId.trim())}`);
+            const apiUrl = loadApiUrl();
+            if (!apiUrl) {
+                setError('尚未設定雲端 API，請聯繫管理員');
+                return;
+            }
+            const res = await fetch(`${apiUrl}/api/check/${encodeURIComponent(employeeId.trim())}`);
             const json = await res.json();
             setResult(json);
         } catch (err) {
