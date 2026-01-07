@@ -285,14 +285,6 @@ export default function FestiveLottery() {
                 includeMargin={true}
               />
             </div>
-
-            <div className="bg-black/30 p-3 rounded-lg border border-purple-500/20">
-              <p className="text-xs text-purple-300/50 mb-1">或是輸入網址</p>
-              <p className="text-sm font-mono text-purple-200 select-all">
-                {window.location.host}/check
-                {loadApiUrl() ? `?api=${encodeURIComponent(loadApiUrl()!)}` : ''}
-              </p>
-            </div>
           </div>
         </div>
       )}

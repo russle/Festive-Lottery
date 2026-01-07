@@ -276,11 +276,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         try {
             // 同步員工
             const empRes = await cloudLotteryAPI.syncEmployees(currentEmployees);
-            if (!empRes.success) throw new Error('同步員工資料失敗: ' + empRes.error);
+            if (!empRes.success) throw new Error('同步員工資料失敗: ' + (empRes.error || '未知錯誤'));
 
             // 同步獎項
             const prizeRes = await cloudLotteryAPI.syncPrizes(currentPrizes);
-            if (!prizeRes.success) throw new Error('同步獎項資料失敗: ' + prizeRes.error);
+            if (!prizeRes.success) throw new Error('同步獎項資料失敗: ' + (prizeRes.error || '未知錯誤'));
 
             // 同步中獎名單 (逐筆上傳)
             if (winners.length > 0) {

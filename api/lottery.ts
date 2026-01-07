@@ -137,7 +137,7 @@ export const cloudLotteryAPI: LotteryAPI = {
                 }),
             });
             const json = await res.json();
-            return { success: json.success };
+            return { success: json.success, error: json.error };
         } catch (error) {
             console.error('[Cloud API] saveWinner failed:', error);
             return { success: false, error: String(error) };
@@ -150,7 +150,7 @@ export const cloudLotteryAPI: LotteryAPI = {
             if (!url) return { success: false, error: 'Cloud API URL not configured' };
             const res = await fetch(`${url}/api/winners`, { method: 'DELETE' });
             const json = await res.json();
-            return { success: json.success };
+            return { success: json.success, error: json.error };
         } catch (error) {
             console.error('[Cloud API] resetWinners failed:', error);
             return { success: false, error: String(error) };
@@ -164,7 +164,7 @@ export const cloudLotteryAPI: LotteryAPI = {
             const res = await fetch(`${url}/api/employees`, { method: 'DELETE' });
             const json = await res.json();
             console.log('[Cloud API] Employees cleared');
-            return { success: json.success };
+            return { success: json.success, error: json.error };
         } catch (error) {
             console.error('[Cloud API] resetEmployees failed:', error);
             return { success: false, error: String(error) };
@@ -178,7 +178,7 @@ export const cloudLotteryAPI: LotteryAPI = {
             const res = await fetch(`${url}/api/prizes`, { method: 'DELETE' });
             const json = await res.json();
             console.log('[Cloud API] Prizes cleared');
-            return { success: json.success };
+            return { success: json.success, error: json.error };
         } catch (error) {
             console.error('[Cloud API] resetPrizes failed:', error);
             return { success: false, error: String(error) };
@@ -196,7 +196,7 @@ export const cloudLotteryAPI: LotteryAPI = {
             });
             const json = await res.json();
             console.log(`[Cloud API] Synced ${json.count || 0} employees`);
-            return { success: json.success };
+            return { success: json.success, error: json.error };
         } catch (error) {
             console.error('[Cloud API] syncEmployees failed:', error);
             return { success: false, error: String(error) };
@@ -214,7 +214,7 @@ export const cloudLotteryAPI: LotteryAPI = {
             });
             const json = await res.json();
             console.log(`[Cloud API] Synced ${json.count || 0} prizes`);
-            return { success: json.success };
+            return { success: json.success, error: json.error };
         } catch (error) {
             console.error('[Cloud API] syncPrizes failed:', error);
             return { success: false, error: String(error) };
