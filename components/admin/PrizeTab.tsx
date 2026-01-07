@@ -43,8 +43,9 @@ export const PrizeTab: React.FC<PrizeTabProps> = ({
                 return;
             }
             setPendingPrizes(prizes);
-        } catch (e: any) {
-            setErrors([e.message || '解析檔案失敗']);
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : '解析檔案失敗';
+            setErrors([message]);
         }
     };
 

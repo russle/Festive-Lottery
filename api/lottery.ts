@@ -1,7 +1,7 @@
 // 抽獎 API 介面層 (支援雲端 + 本地混合模式)
 import type { Employee, Prize, Winner, ApiResponse } from '../types';
 import { MOCK_EMPLOYEES, MOCK_PRIZES, getMockWinners, addMockWinner, clearMockWinners } from './mockData';
-import { loadApiUrl } from '../utils/storage';
+import { loadApiUrl, loadHostId } from '../utils/storage';
 
 /** 動態獲取雲端 API 網址 */
 const getCloudApiUrl = () => loadApiUrl();
@@ -79,7 +79,9 @@ export const cloudLotteryAPI: LotteryAPI = {
         try {
             const url = getCloudApiUrl();
             if (!url) return { success: false, error: 'Cloud API URL not configured' };
-            const res = await fetch(`${url}/api/employees`);
+            const res = await fetch(`${url}/api/employees`, {
+                headers: { 'X-Host-ID': loadHostId() }
+            });
             const json = await res.json();
             return { success: json.success, data: json.data || [] };
         } catch (error) {
@@ -92,7 +94,9 @@ export const cloudLotteryAPI: LotteryAPI = {
         try {
             const url = getCloudApiUrl();
             if (!url) return { success: false, error: 'Cloud API URL not configured' };
-            const res = await fetch(`${url}/api/prizes`);
+            const res = await fetch(`${url}/api/prizes`, {
+                headers: { 'X-Host-ID': loadHostId() }
+            });
             const json = await res.json();
             return { success: json.success, data: json.data || [] };
         } catch (error) {
@@ -105,10 +109,19 @@ export const cloudLotteryAPI: LotteryAPI = {
         try {
             const url = getCloudApiUrl();
             if (!url) return { success: false, error: 'Cloud API URL not configured' };
-            const res = await fetch(`${url}/api/winners`);
+            const res = await fetch(`${url}/api/winners`, {
+                headers: { 'X-Host-ID': loadHostId() }
+            });
             const json = await res.json();
             // 轉換格式：雲端返回的是展開的資料，需轉換回 Winner 格式
-            const winners: Winner[] = (json.data || []).map((w: any) => ({
+            interface CloudWinner {
+                prizeId: number;
+                employeeId: string;
+                employeeName: string;
+                employeeDept: string;
+                timestamp: string | number;
+            }
+            const winners: Winner[] = (json.data || []).map((w: CloudWinner) => ({
                 prizeId: w.prizeId,
                 employee: {
                     id: w.employeeId,
@@ -130,7 +143,10 @@ export const cloudLotteryAPI: LotteryAPI = {
             if (!url) return { success: false, error: 'Cloud API URL not configured' };
             const res = await fetch(`${url}/api/winners`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Host-ID': loadHostId()
+                },
                 body: JSON.stringify({
                     prizeId: winner.prizeId,
                     employeeId: winner.employee.id,
@@ -148,7 +164,10 @@ export const cloudLotteryAPI: LotteryAPI = {
         try {
             const url = getCloudApiUrl();
             if (!url) return { success: false, error: 'Cloud API URL not configured' };
-            const res = await fetch(`${url}/api/winners`, { method: 'DELETE' });
+            const res = await fetch(`${url}/api/winners`, {
+                method: 'DELETE',
+                headers: { 'X-Host-ID': loadHostId() }
+            });
             const json = await res.json();
             return { success: json.success, error: json.error };
         } catch (error) {
@@ -161,7 +180,10 @@ export const cloudLotteryAPI: LotteryAPI = {
         try {
             const url = getCloudApiUrl();
             if (!url) return { success: false, error: 'Cloud API URL not configured' };
-            const res = await fetch(`${url}/api/employees`, { method: 'DELETE' });
+            const res = await fetch(`${url}/api/employees`, {
+                method: 'DELETE',
+                headers: { 'X-Host-ID': loadHostId() }
+            });
             const json = await res.json();
             console.log('[Cloud API] Employees cleared');
             return { success: json.success, error: json.error };
@@ -175,7 +197,10 @@ export const cloudLotteryAPI: LotteryAPI = {
         try {
             const url = getCloudApiUrl();
             if (!url) return { success: false, error: 'Cloud API URL not configured' };
-            const res = await fetch(`${url}/api/prizes`, { method: 'DELETE' });
+            const res = await fetch(`${url}/api/prizes`, {
+                method: 'DELETE',
+                headers: { 'X-Host-ID': loadHostId() }
+            });
             const json = await res.json();
             console.log('[Cloud API] Prizes cleared');
             return { success: json.success, error: json.error };
@@ -191,7 +216,10 @@ export const cloudLotteryAPI: LotteryAPI = {
             if (!url) return { success: false, error: 'Cloud API URL not configured' };
             const res = await fetch(`${url}/api/employees`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Host-ID': loadHostId()
+                },
                 body: JSON.stringify({ employees }),
             });
             const json = await res.json();
@@ -209,7 +237,10 @@ export const cloudLotteryAPI: LotteryAPI = {
             if (!url) return { success: false, error: 'Cloud API URL not configured' };
             const res = await fetch(`${url}/api/prizes`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Host-ID': loadHostId()
+                },
                 body: JSON.stringify({ prizes }),
             });
             const json = await res.json();

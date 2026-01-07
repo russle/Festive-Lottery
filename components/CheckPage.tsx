@@ -23,12 +23,16 @@ export const CheckPage: React.FC = () => {
     const [result, setResult] = useState<CheckResult | null>(null);
     const [error, setError] = useState('');
 
-    // 解析網址中的 API URL 參數
+    // 解析網址中的 API URL 與 Host ID 參數
     React.useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const apiUrlParam = params.get('api');
         if (apiUrlParam) {
             saveApiUrl(decodeURIComponent(apiUrlParam));
+        }
+        const hostIdParam = params.get('host');
+        if (hostIdParam) {
+            import('../utils/storage').then(m => m.saveHostId(hostIdParam));
         }
     }, []);
 
@@ -51,9 +55,10 @@ export const CheckPage: React.FC = () => {
             const res = await fetch(`${apiUrl}/api/check/${encodeURIComponent(employeeId.trim())}`);
             const json = await res.json();
             setResult(json);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Check failed:', err);
-            setError(`查詢失敗：${err.message || '請檢查網路連線'}`);
+            const message = err instanceof Error ? err.message : '請檢查網路連線';
+            setError(`查詢失敗：${message}`);
         } finally {
             setIsLoading(false);
         }

@@ -34,21 +34,26 @@ export default function FestiveLottery() {
 
   // 鍵盤事件
   useEffect(() => {
+    const { phase, startCountdown, stopRolling, nextPrize } = lottery;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'Space') {
         e.preventDefault();
-        if (lottery.phase === 'standby' || lottery.phase === 'join') {
-          lottery.startCountdown();
-        } else if (lottery.phase === 'rolling') {
-          lottery.stopRolling();
-        } else if (lottery.phase === 'reveal' || lottery.phase === 'batch_reveal') {
-          lottery.nextPrize();
+        if (phase === 'standby' || phase === 'join') {
+          startCountdown();
+        } else if (phase === 'rolling') {
+          stopRolling();
+        } else if (phase === 'reveal' || phase === 'batch_reveal') {
+          nextPrize();
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [lottery.phase, lottery.startCountdown, lottery.stopRolling, lottery.nextPrize]);
+  }, [lottery]); // Use the whole lottery object as it's from a hook and its stable-ness depends on the hook implementation. 
+  // Actually, the lint error suggested including 'lottery'. 
+  // If lottery is stable, then it's fine. If not, we should destructure.
+  // Looking at useLottery, it returns an object.
+
 
   const lastWinner = lottery.winners[lottery.winners.length - 1];
 

@@ -137,7 +137,7 @@ export const useLottery = (): UseLotteryReturn => {
     // 切換獎項時清空 AI 評語
     useEffect(() => {
         ai.clearCommentary();
-    }, [currentPrizeIndex]);
+    }, [currentPrizeIndex, ai]);
 
     // ========================================================================
     // Join Phase Animation
@@ -222,7 +222,7 @@ export const useLottery = (): UseLotteryReturn => {
                 startRollingInternal();
             }
         }, 1000);
-    }, [phase, currentPrize, getEligibleEmployees, getCountToDraw]);
+    }, [phase, getEligibleEmployees, getCountToDraw, ai]);
 
     const startRollingInternal = () => {
         soundManager.stop('countdown');
@@ -304,6 +304,7 @@ export const useLottery = (): UseLotteryReturn => {
     // Reset Functions
     // ========================================================================
     const resetAll = useCallback(() => {
+        soundManager.play('click');
         setCurrentPrizeIndex(0);
         setWinners([]);
         setPhase('standby');
@@ -311,7 +312,7 @@ export const useLottery = (): UseLotteryReturn => {
         setParticipantCount(0);
         setJoiners([]);
         saveWinners([]);
-    }, []);
+    }, [ai]);
 
     const resetCurrentPrize = useCallback(() => {
         if (!currentPrize) return;
@@ -386,12 +387,12 @@ export const useLottery = (): UseLotteryReturn => {
     // ========================================================================
     const generatePrizeAI = useCallback(() => {
         ai.generatePrizeAI(currentPrize);
-    }, [currentPrize, ai.generatePrizeAI]);
+    }, [currentPrize, ai]);
 
     const generateWinnerAI = useCallback(() => {
         const lastWinner = winners[winners.length - 1];
         ai.generateWinnerAI(lastWinner, currentPrize);
-    }, [winners, currentPrize, ai.generateWinnerAI]);
+    }, [winners, currentPrize, ai]);
 
     // ========================================================================
     // Return (組合所有 Hooks 的狀態與方法)

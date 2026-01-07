@@ -18,7 +18,7 @@ export const WinnerTab: React.FC<WinnerTabProps> = ({
     const exportWinners = () => {
         if (winners.length === 0) return;
 
-        const exportData: any[][] = [
+        const exportData: (string | number)[][] = [
             ['獎項', '員工編號', '姓名', '部門', '獲獎時間'],
             ...winners.map(w => {
                 const prize = currentPrizes.find(p => p.id === w.prizeId);

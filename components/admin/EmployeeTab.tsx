@@ -34,8 +34,9 @@ export const EmployeeTab: React.FC<EmployeeTabProps> = ({
                 return;
             }
             setPendingEmployees(employees);
-        } catch (e: any) {
-            setErrors([e.message || '解析檔案失敗']);
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : '解析檔案失敗';
+            setErrors([message]);
         }
     };
 

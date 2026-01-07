@@ -35,7 +35,7 @@ export const convertExcelToRows = (data: ArrayBuffer): string[][] => {
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
     // 使用 header: 1 取得二維陣列
-    const rows = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
+    const rows = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1 });
     return rows.map(row => row.map(cell => String(cell || '').trim()));
 };
 
@@ -170,7 +170,7 @@ export const generateSamplePrizesCSV = (): string => {
 /**
  * 將資料導出為 Excel Buffer
  */
-export const exportToExcelBuffer = (data: any[][]): ArrayBuffer => {
+export const exportToExcelBuffer = (data: (string | number)[][]): ArrayBuffer => {
     const worksheet = XLSX.utils.aoa_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');

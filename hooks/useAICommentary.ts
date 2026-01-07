@@ -40,10 +40,11 @@ export const useAICommentary = (): UseAICommentaryReturn => {
         try {
             const text = await generatePrizeIntro(currentPrize.name);
             setAiCommentary(text);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('AI Gen Error:', error);
             setAiCommentary('福星高照，財源廣進！');
-            alert(`AI 生成失敗：${error.message}`);
+            const message = error instanceof Error ? error.message : String(error);
+            alert(`AI 生成失敗：${message}`);
         } finally {
             setIsAiLoading(false);
         }
@@ -62,10 +63,11 @@ export const useAICommentary = (): UseAICommentaryReturn => {
                 currentPrize.name
             );
             setAiCommentary(text);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('AI Gen Error:', error);
             setAiCommentary('福星高照，財源廣進！');
-            alert(`AI 生成失敗：${error.message}`);
+            const message = error instanceof Error ? error.message : String(error);
+            alert(`AI 生成失敗：${message}`);
         } finally {
             setIsAiLoading(false);
         }

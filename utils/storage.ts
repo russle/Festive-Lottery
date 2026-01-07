@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
     CUSTOM_LOGO: 'lottery_custom_logo',
     EVENT_TITLE: 'lottery_event_title',
     EVENT_SUBTITLE: 'lottery_event_subtitle',
+    HOST_ID: 'lottery_host_id',
 };
 
 /**
@@ -180,4 +181,13 @@ export const saveEventSubtitle = (subtitle: string) => {
 
 export const loadEventSubtitle = (): string | null => {
     return localStorage.getItem(STORAGE_KEYS.EVENT_SUBTITLE);
+};
+
+// 主機識別碼儲存
+export const saveHostId = (hostId: string) => {
+    localStorage.setItem(STORAGE_KEYS.HOST_ID, hostId);
+};
+
+export const loadHostId = (): string => {
+    return localStorage.getItem(STORAGE_KEYS.HOST_ID) || 'default';
 };

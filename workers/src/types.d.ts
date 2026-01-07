@@ -6,7 +6,7 @@ export interface D1Database {
 }
 
 export interface D1PreparedStatement {
-    bind: (...values: any[]) => D1PreparedStatement;
+    bind: (...values: unknown[]) => D1PreparedStatement;
     first: <T = unknown>(colName?: string) => Promise<T | null>;
     run: <T = unknown>() => Promise<D1Result<T>>;
     all: <T = unknown>() => Promise<D1Result<T>>;
@@ -16,7 +16,7 @@ export interface D1PreparedStatement {
 export interface D1Result<T = unknown> {
     results: T[];
     success: boolean;
-    meta: any;
+    meta: unknown;
 }
 
 export interface D1ExecResult {

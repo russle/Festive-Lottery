@@ -78,7 +78,7 @@ export const generateContent = async (prompt: string): Promise<string> => {
             console.log('[AI] OpenAI response:', result);
             return result;
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(`[AI] ${provider} Network Error:`, error);
         throw error; // 重新拋出讓 UI 層處理
     }

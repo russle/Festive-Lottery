@@ -4,7 +4,7 @@ import { Settings as SettingsIcon, ExternalLink, Cloud, RefreshCw, QrCode, Downl
 import { QRCodeSVG } from 'qrcode.react';
 import type { Employee, Prize, Winner, AIConfig } from '../../types';
 import { cloudLotteryAPI } from '../../api/lottery';
-import { loadApiUrl, saveApiUrl } from '../../utils/storage';
+import { loadApiUrl, saveApiUrl, loadHostId, saveHostId } from '../../utils/storage';
 
 interface SettingsTabProps {
     aiConfig: AIConfig;
@@ -38,10 +38,11 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
     onResetAll,
 }) => {
     const [apiUrl, setApiUrlState] = useState(loadApiUrl() || '');
+    const [hostId, setHostIdState] = useState(loadHostId());
     const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
     const [syncMessage, setSyncMessage] = useState('');
 
-    const handleSaveApiUrl = () => {
+    const handleSaveSettings = () => {
         let urlToSave = apiUrl.trim();
         // Auto-prepend https:// if no protocol
         if (urlToSave && !urlToSave.startsWith('http://') && !urlToSave.startsWith('https://')) {
@@ -52,7 +53,13 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         urlToSave = urlToSave.replace(/\/+$/, '');
         setApiUrlState(urlToSave);
         saveApiUrl(urlToSave);
-        alert('雲端 API 設定已儲存');
+
+        // Save Host ID
+        const trimmedHostId = hostId.trim() || 'default';
+        setHostIdState(trimmedHostId);
+        saveHostId(trimmedHostId);
+
+        alert('設定已儲存');
     };
 
     const handleManualSync = async () => {
@@ -79,9 +86,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
 
             setSyncStatus('success');
             setSyncMessage(`同步完成！員工 ${currentEmployees.length} 筆、獎品 ${currentPrizes.length} 筆、中獎 ${winners.length} 筆`);
-        } catch (error: any) {
+        } catch (error: unknown) {
             setSyncStatus('error');
-            setSyncMessage(error.message || '同步失敗');
+            const message = error instanceof Error ? error.message : '同步失敗';
+            setSyncMessage(message);
             console.error('Manual sync failed:', error);
         }
     };
@@ -231,7 +239,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                                 className="flex-1 bg-black/40 border border-amber-500/30 rounded px-3 py-2 text-sm text-amber-100 focus:outline-none focus:border-amber-500"
                             />
                             <button
-                                onClick={handleSaveApiUrl}
+                                onClick={handleSaveSettings}
                                 className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded text-xs transition-colors"
                             >
                                 儲存
@@ -239,6 +247,28 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                         </div>
                         <p className="text-[10px] text-amber-300/40">
                             填寫您自行部署的 Cloudflare Worker 網址。若留空則僅使用本地模式（無法查獎）。
+                        </p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs text-amber-300/70 block">主機識別碼 (Host ID)</label>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={hostId}
+                                onChange={(e) => setHostIdState(e.target.value)}
+                                placeholder="例如: PC-1 或 Room-A"
+                                className="flex-1 bg-black/40 border border-amber-500/30 rounded px-3 py-2 text-sm text-amber-100 focus:outline-none focus:border-amber-500"
+                            />
+                            <button
+                                onClick={handleSaveSettings}
+                                className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded text-xs transition-colors"
+                            >
+                                儲存
+                            </button>
+                        </div>
+                        <p className="text-[10px] text-amber-300/40">
+                            若多台主機共用同一個 Worker，請設定不同的識別碼以隔離資料。
                         </p>
                     </div>
 
@@ -276,7 +306,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                         <div className="flex flex-col md:flex-row items-center gap-6">
                             <div className="bg-white p-2 rounded-lg shadow-xl shrink-0">
                                 <QRCodeSVG
-                                    value={`${window.location.origin}/check?api=${encodeURIComponent(apiUrl)}`}
+                                    value={`${window.location.origin}/check?api=${encodeURIComponent(apiUrl)}&host=${encodeURIComponent(hostId)}`}
                                     size={160}
                                     level="H"
                                     includeMargin={true}
@@ -289,7 +319,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                                 </p>
                                 <div className="p-2 bg-black/40 rounded border border-purple-500/30">
                                     <p className="text-xs text-purple-300 break-all">
-                                        {window.location.origin}/check?api={encodeURIComponent(apiUrl)}
+                                        {window.location.origin}/check?api={encodeURIComponent(apiUrl)}&host={encodeURIComponent(hostId)}
                                     </p>
                                 </div>
                                 <button
