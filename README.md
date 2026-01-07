@@ -4,13 +4,14 @@
 
 ## 🌟 特色功能
 
+- **多機支援 (Multi-Host)**：支援多台抽獎主機共用同一個雲端 Worker，透過 `Host ID` 進行資料隔離，互不干擾。
 - **模組化架構**：易於擴展與維護，元件化設計。
 - **動態資料管理**：支援透過 CSV 或 Excel (.xlsx, .xls) 上傳員工名單與獎項清單。
 - **AI 吉祥話**：整合 Google Gemini / OpenAI API，生成喜慶的獎項介紹與得獎祝賀。
-- **QR Code 查獎**：員工可掃碼即時查詢中獎狀態 (需部署 Cloudflare Worker)。
+- **QR Code 查獎**：員工可掃碼即時查詢中獎狀態，二維碼自動帶入主機參數。
 - **資料持久化**：使用 LocalStorage 儲存資料，重新整理頁面不丟失。
-- **視覺效果**：動態粒子背景、金色漸層文字與節慶裝飾。
-- **穩定性保障**：內建 Error Boundary 機制，發生錯誤時優雅降級。
+- **視覺效果**：動態粒子背景、金色漸層文字與節慶裝飾，優化後的 Tailwind 動效。
+- **代碼品質**：全專案通過 ESLint 嚴格檢查，無 `any` 類型，確保系統穩定性。
 
 ## 💡 系統功能說明
 本系統支援兩種運作模式，依據您的需求選擇：
@@ -18,25 +19,34 @@
 ### 1. 抽獎功能 (本地模式)
 - **無需伺服器**：下載程式碼後，直接在電腦上執行即可使用。
 - **資料安全**：所有名單與中獎紀錄僅儲存於該電腦的瀏覽器中 (LocalStorage)。
-- **適用場景**：活動現場僅有一台主控電腦，且不需要讓員工自行查獎。
 
 ### 2. QR Code 查獎功能 (雲端模式)
-- **需部署至 Cloudflare**：若需要讓員工掃碼查獎，需將本專案部署至 Cloudflare Pages，並綁定 D1 資料庫。
-- **後台手動設定**：每家公司(或每次活動)擁有獨立的 Worker，請在「後台管理 > 雲端同步設定」中輸入各自的 Worker 網址，確保資料獨立。
-- **即時同步**：主控台抽出的結果會即時同步到雲端，員工掃描 QR Code 即可看到最新中獎狀態。
-- **適用場景**：希望提供員工手機查獎功能的活動。
+- **支援多主機隔離**：您可以在「後台管理 > 雲端同步設定」中設定 **主機識別碼 (Host ID)**。不同的主機（例如 A 廳與 B 廳）使用同一個 Worker URL 也不會互相覆蓋中獎名單。
+- **部署需求**：需將本專案部署至 Cloudflare Pages，並綁定 D1 資料庫。
+- **自動帶參**：產生的 QR Code 會自動包含 `host` 參數，員工掃描後能對應到正確的主機名單。
+
+## ⚠️ 資料庫遷移說明
+若您是從舊版本升級，或初次部署雲端版本，請務必在 Cloudflare D1 管理後台執行以下 SQL 設定，以支援 Host ID 功能：
+
+```sql
+-- 為資料表增加 host_id 欄位
+ALTER TABLE employees ADD COLUMN host_id TEXT DEFAULT 'default';
+ALTER TABLE prizes ADD COLUMN host_id TEXT DEFAULT 'default';
+ALTER TABLE winners ADD COLUMN host_id TEXT DEFAULT 'default';
+
+-- 建立索引以優化查詢效能
+CREATE INDEX IF NOT EXISTS idx_employees_host ON employees(host_id);
+CREATE INDEX IF NOT EXISTS idx_prizes_host ON prizes(host_id);
+CREATE INDEX IF NOT EXISTS idx_winners_host ON winners(host_id);
+```
 
 ## 🎲 抽獎機制說明 (公平性宣告)
 本系統採用業界標準的 **亂數洗牌演算法 (Fisher-Yates Shuffle)** 變體：
 1. **過濾**：系統先從總名單中剔除已中獎人員，鎖定符合資格的候選名單。
 2. **洗牌**：使用 `Math.random()` 產生亂數，對候選名單進行隨機排序。
 3. **抽取**：從打亂後的名單中，依據該獎項所需的數量，直接截取前 N 位作為得獎者。
-*註：程式碼開源透明，無任何後門或權重設定，確保每次抽獎皆為獨立隨機事件。*
 
 ## 🚀 快速開始
-
-### 前置準備
-請確保您的環境已安裝 [Node.js](https://nodejs.org/)。
 
 ### 安裝依賴
 ```bash
@@ -47,43 +57,25 @@ npm install
 ```bash
 npm run dev
 ```
-啟動後請訪問：`http://localhost:5173/`
 
-## 📋 資料格式 (CSV / Excel)
+### 程式碼檢查 (Lint)
+```bash
+npm run lint
+```
 
-您可以透過後台設定面板上傳自定義資料。建議優先使用 Excel 確保編碼相容性。
-
-### 員工名單 (employees.xlsx / .csv)
-| 欄位 | 說明 |
-| --- | --- |
-| id | 員工編號 (必填) |
-| name | 姓名 (必填) |
-| dept | 部門 |
-
-### 獎項清單 (prizes.xlsx / .csv)
-| 欄位 | 說明 |
-| --- | --- |
-| name | 獎品名稱 (必填) |
-| icon | Emoji 圖示 (預設 🎁) |
-| count | 總數量 (預設 1) |
-| type | 類型 (`single` 或 `batch`) |
-| countPerRound | 每輪抽取人數 (預設與總量相同) |
-
+## 📋 資料格式 (Excel)
+建議優先使用 Excel 確保編碼相容性。您可以在後台直接下載範例檔案。
 
 ## 🛠 技術棧
 
-| 類別 | 技術 |
-|------|------|
-| **Frontend** | React 18, TypeScript |
-| **Styling** | Tailwind CSS |
-| **Build Tool** | Vite |
-| **Icons** | Lucide React |
-| **AI Integration** | Google Gemini API, OpenAI API |
-| **Cloud Backend** | Cloudflare Pages, Workers, D1 Database |
-| **Data Parsing** | SheetJS (xlsx) |
+- **Frontend**: React 18, TypeScript
+- **Styling**: Tailwind CSS (Custom Theme)
+- **Build Tool**: Vite
+- **Cloud**: Cloudflare (Pages, Workers, D1)
+- **AI**: Google Gemini / OpenAI
 
 ## 📝 授權
+此專案基於 **Apache License 2.0** 授權。
 
-此專案基於 **Apache License 2.0** 授權。詳細內容請參閱 [LICENSE](./LICENSE) 檔案。
 
 
