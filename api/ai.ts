@@ -1,7 +1,7 @@
 // AI 服務封裝 (支援 Gemini 與 OpenAI)
 import type { AIConfig } from '../types';
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 let aiConfig: AIConfig = {
@@ -13,6 +13,7 @@ let aiConfig: AIConfig = {
 /** 更新 AI 設定 */
 export const setAIConfig = (config: AIConfig): void => {
     aiConfig = { ...config };
+    console.log('[AI] Config updated:', { provider: config.provider, hasGeminiKey: !!config.geminiKey, hasOpenaiKey: !!config.openaiKey });
 };
 
 /** 通用內容生成 */
@@ -21,9 +22,11 @@ export const generateContent = async (prompt: string): Promise<string> => {
     const apiKey = provider === 'gemini' ? geminiKey : openaiKey;
 
     if (!apiKey) {
-        console.warn(`${provider} API key not set`);
+        console.warn(`[AI] ${provider} API key not set`);
         return '福星高照，財源廣進！';
     }
+
+    console.log(`[AI] Calling ${provider} API...`);
 
     try {
         if (provider === 'gemini') {
@@ -34,8 +37,17 @@ export const generateContent = async (prompt: string): Promise<string> => {
                     contents: [{ parts: [{ text: prompt }] }],
                 }),
             });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error(`[AI] Gemini API Error ${response.status}:`, errorData);
+                return '福星高照，財源廣進！';
+            }
+
             const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || '福星高照，財源廣進！';
+            const result = data.candidates?.[0]?.content?.parts?.[0]?.text || '福星高照，財源廣進！';
+            console.log('[AI] Gemini response:', result);
+            return result;
         } else {
             // OpenAI 支援
             const response = await fetch(OPENAI_API_URL, {
@@ -50,11 +62,20 @@ export const generateContent = async (prompt: string): Promise<string> => {
                     max_tokens: 100,
                 }),
             });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error(`[AI] OpenAI API Error ${response.status}:`, errorData);
+                return '福星高照，財源廣進！';
+            }
+
             const data = await response.json();
-            return data.choices?.[0]?.message?.content || '福星高照，財源廣進！';
+            const result = data.choices?.[0]?.message?.content || '福星高照，財源廣進！';
+            console.log('[AI] OpenAI response:', result);
+            return result;
         }
     } catch (error) {
-        console.error(`${provider} API Error:`, error);
+        console.error(`[AI] ${provider} Network Error:`, error);
         return '連線繁忙，好運馬上到！';
     }
 };
