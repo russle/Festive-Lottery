@@ -55,13 +55,21 @@ export default {
 
                 if (method === 'POST') {
                     const body = await request.json() as { employees: Array<{ id: string; name: string; dept?: string }> };
-                    const { employees } = body;
+                    const { employees: inputEmployees } = body;
 
-                    if (!Array.isArray(employees)) {
+                    if (!Array.isArray(inputEmployees)) {
                         return errorResponse('employees must be an array');
                     }
 
+                    // Deduplicate within the incoming list (keep the last one)
+                    const employeeMap = new Map();
+                    for (const emp of inputEmployees) {
+                        if (emp.id) employeeMap.set(emp.id, emp);
+                    }
+                    const employees = Array.from(employeeMap.values());
+
                     // Clear existing for this host only and Insert new in batch
+                    // Note: We use INSERT OR REPLACE to avoid UNIQUE constraint failures if the same ID exists in another host
                     const statements = [
                         env.DB.prepare('DELETE FROM winners WHERE host_id = ?').bind(hostId),
                         env.DB.prepare('DELETE FROM employees WHERE host_id = ?').bind(hostId)
@@ -70,7 +78,7 @@ export default {
                     for (const emp of employees) {
                         statements.push(
                             env.DB.prepare(
-                                'INSERT INTO employees (id, name, dept, host_id) VALUES (?, ?, ?, ?)'
+                                'INSERT OR REPLACE INTO employees (id, name, dept, host_id) VALUES (?, ?, ?, ?)'
                             ).bind(emp.id, emp.name, emp.dept || '未分類', hostId)
                         );
                     }
@@ -112,7 +120,7 @@ export default {
                     for (const prize of prizes) {
                         statements.push(
                             env.DB.prepare(
-                                'INSERT INTO prizes (id, name, icon, count, type, count_per_round, host_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
+                                'INSERT OR REPLACE INTO prizes (id, name, icon, count, type, count_per_round, host_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
                             ).bind(
                                 prize.id,
                                 prize.name,
