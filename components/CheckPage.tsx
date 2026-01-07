@@ -1,7 +1,7 @@
 // 中獎查詢頁面 (手機用戶掃描 QR Code 後進入)
 import React, { useState } from 'react';
 import { Search, PartyPopper, Frown } from 'lucide-react';
-import { loadApiUrl, saveApiUrl } from '../utils/storage';
+import { loadApiUrl, saveApiUrl, loadHostId, saveHostId } from '../utils/storage';
 
 interface WinRecord {
     prizeName: string;
@@ -32,7 +32,7 @@ export const CheckPage: React.FC = () => {
         }
         const hostIdParam = params.get('host');
         if (hostIdParam) {
-            import('../utils/storage').then(m => m.saveHostId(hostIdParam));
+            saveHostId(hostIdParam);
         }
     }, []);
 
@@ -52,7 +52,9 @@ export const CheckPage: React.FC = () => {
                 setError('尚未設定雲端 API，請聯繫管理員');
                 return;
             }
-            const res = await fetch(`${apiUrl}/api/check/${encodeURIComponent(employeeId.trim())}`);
+            const res = await fetch(`${apiUrl}/api/check/${encodeURIComponent(employeeId.trim())}`, {
+                headers: { 'X-Host-ID': loadHostId() }
+            });
             const json = await res.json();
             setResult(json);
         } catch (err: unknown) {
