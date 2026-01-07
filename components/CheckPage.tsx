@@ -48,12 +48,14 @@ export const CheckPage: React.FC = () => {
 
         try {
             const apiUrl = loadApiUrl();
+            const hostId = loadHostId();
             if (!apiUrl) {
                 setError('尚未設定雲端 API，請聯繫管理員');
                 return;
             }
-            const res = await fetch(`${apiUrl}/api/check/${encodeURIComponent(employeeId.trim())}`, {
-                headers: { 'X-Host-ID': loadHostId() }
+            // Pass host as both header and query param for maximum compatibility
+            const res = await fetch(`${apiUrl}/api/check/${encodeURIComponent(employeeId.trim())}?host=${encodeURIComponent(hostId)}`, {
+                headers: { 'X-Host-ID': hostId }
             });
             const json = await res.json();
             setResult(json);

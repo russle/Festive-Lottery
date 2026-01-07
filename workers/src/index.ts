@@ -188,15 +188,21 @@ export default {
             }
 
             // ========== CHECK WINNER (QR Code Query) ==========
-            if (path.startsWith('/api/check/')) {
-                const parts = path.split('/');
-                const employeeId = decodeURIComponent(parts[3] || '');
-                // Check page via QR code can use URL param for host
+            // Support both /api/check/:id and more robust path splitting
+            if (path.includes('/api/check/')) {
+                const normalizedPath = path.replace(/\/+/g, '/'); // Fix double slashes
+                const parts = normalizedPath.split('/');
+                const checkIdx = parts.indexOf('check');
+                const employeeId = decodeURIComponent(parts[checkIdx + 1] || '').trim();
+
+                // Allow host ID from URL param or header
                 const queryHostId = url.searchParams.get('host') || hostId;
 
                 if (!employeeId) {
                     return errorResponse('Employee ID is required');
                 }
+
+                console.log(`[Check] Searching for Emp: ${employeeId} in Host: ${queryHostId}`);
 
                 const { results } = await env.DB.prepare(`
                     SELECT 
@@ -213,10 +219,13 @@ export default {
                     ORDER BY w.timestamp DESC
                 `).bind(employeeId, queryHostId).all();
 
+                console.log(`[Check] Found ${results.length} records`);
+
                 return jsonResponse({
                     success: true,
                     hasWon: results.length > 0,
                     data: results,
+                    debug: { employeeId, hostId: queryHostId } // Add debug info
                 });
             }
 
