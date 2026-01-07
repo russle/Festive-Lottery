@@ -8,7 +8,8 @@ import {
     saveEmployees, loadEmployees,
     savePrizes, loadPrizes,
     saveWinners, loadWinners,
-    clearAllData, saveAIConfig, loadAIConfig
+    clearAllData, saveAIConfig, loadAIConfig,
+    clearEmployees, clearPrizes, clearWinners as storageClearWinners,
 } from '../utils/storage';
 import { soundManager } from '../utils/sound';
 import { loadBGMFile } from '../utils/db';
@@ -49,6 +50,10 @@ export interface UseLotteryReturn {
     updatePrizes: (prizes: Prize[]) => void;
     updateAIConfig: (config: AIConfig) => void;
     clearStoredData: () => void;
+    resetEmployees: () => void;
+    resetPrizes: () => void;
+    resetWinners: () => void;
+    resetBGM: () => void;
 }
 
 export const useLottery = (): UseLotteryReturn => {
@@ -368,6 +373,41 @@ export const useLottery = (): UseLotteryReturn => {
         setPhase('standby');
     }, []);
 
+    // 清除單項資料
+    const resetEmployees = useCallback(() => {
+        clearEmployees();
+        import('../api/lottery').then(({ mockLotteryAPI }) => {
+            mockLotteryAPI.getEmployees().then(res => {
+                if (res.success && res.data) setEmployees(res.data);
+            });
+        });
+        setWinners([]);
+    }, []);
+
+    const resetPrizes = useCallback(() => {
+        clearPrizes();
+        import('../api/lottery').then(({ mockLotteryAPI }) => {
+            mockLotteryAPI.getPrizes().then(res => {
+                if (res.success && res.data) setPrizes(res.data);
+            });
+        });
+        setWinners([]);
+    }, []);
+
+    const resetWinnersData = useCallback(() => {
+        storageClearWinners();
+        lotteryAPI.resetWinners();
+        lastSyncedCount.current = 0;
+        setWinners([]);
+    }, []);
+
+    const resetBGM = useCallback(() => {
+        // 因 BGM 是在 IndexedDB，需要調用 db.ts 的清除
+        import('../utils/db').then(({ clearBGM }) => {
+            clearBGM();
+        });
+    }, []);
+
     // 清除所有儲存的資料
     const clearStoredData = useCallback(() => {
         clearAllData();
@@ -422,6 +462,10 @@ export const useLottery = (): UseLotteryReturn => {
         generateWinnerAI,
         updateEmployees,
         updatePrizes,
+        resetEmployees,
+        resetPrizes,
+        resetWinners: resetWinnersData,
+        resetBGM,
         updateAIConfig: (config: AIConfig) => {
             setAIConfigState(config);
             saveAIConfig(config);

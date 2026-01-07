@@ -28,8 +28,13 @@ interface AdminPanelProps {
     aiConfig: AIConfig;
     onUpdateAIConfig: (config: AIConfig) => void;
     onResetAll: () => void;
+    onResetEmployees: () => void;
+    onResetPrizes: () => void;
+    onResetWinners: () => void;
+    onResetBGM: () => void;
     onClose: () => void;
 }
+
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
     currentEmployees,
@@ -40,6 +45,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     aiConfig,
     onUpdateAIConfig,
     onResetAll,
+    onResetEmployees,
+    onResetPrizes,
+    onResetWinners,
+    onResetBGM,
     onClose,
 }) => {
     const [pendingEmployees, setPendingEmployees] = useState<Employee[] | null>(null);
@@ -191,7 +200,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-[90] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 z-[90] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={onClose}
+        >
             <div className="bg-gradient-to-b from-[#2a0a12] to-[#1a0510] w-full max-w-4xl max-h-[90vh] rounded-2xl border border-amber-500/30 shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-amber-500/20">
@@ -304,7 +316,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                             {/* Current Data */}
                             {!pendingEmployees && currentEmployees.length > 0 && (
-                                <DataPreview type="employees" employees={currentEmployees} />
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-amber-300 font-medium">目前的員工名單</h3>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (confirm('確定要清除所有員工資料嗎？這也會清除中獎紀錄。')) {
+                                                    onResetEmployees();
+                                                }
+                                            }}
+                                            className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1 transition-colors"
+                                        >
+                                            <Trash2 size={14} /> 清除員工
+                                        </button>
+                                    </div>
+                                    <DataPreview type="employees" employees={currentEmployees} />
+                                </div>
                             )}
                         </>
                     )}
@@ -343,7 +371,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                             {/* Current Data */}
                             {!pendingPrizes && currentPrizes.length > 0 && (
-                                <DataPreview type="prizes" prizes={currentPrizes} />
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-amber-300 font-medium">目前的獎品名單</h3>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (confirm('確定要清除所有獎品資料嗎？這也會清除中獎紀錄。')) {
+                                                    onResetPrizes();
+                                                }
+                                            }}
+                                            className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1 transition-colors"
+                                        >
+                                            <Trash2 size={14} /> 清除獎項
+                                        </button>
+                                    </div>
+                                    <DataPreview type="prizes" prizes={currentPrizes} />
+                                </div>
                             )}
                         </>
                     )}
@@ -354,9 +398,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 <h3 className="text-amber-300 font-medium">中獎統計數據</h3>
                                 <div className="flex gap-2">
                                     <button
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                            e.stopPropagation();
                                             if (winners.length > 0 && confirm('確定要清除所有中獎紀錄嗎？此動作無法復原。')) {
-                                                onResetAll();
+                                                onResetWinners();
                                             }
                                         }}
                                         disabled={winners.length === 0}
@@ -482,6 +527,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                             className="w-full h-2 bg-black/50 rounded-lg appearance-none cursor-pointer accent-amber-500"
                                         />
                                     </div>
+
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (confirm('確定要清除已上傳的背景音樂嗎？')) {
+                                                onResetBGM();
+                                            }
+                                        }}
+                                        className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1 transition-colors mt-6 mx-auto"
+                                    >
+                                        <Trash2 size={14} /> 移除背景音樂
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -686,10 +743,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 <div className="p-4 bg-red-900/10 border border-red-500/20 rounded-xl space-y-3">
                                     <p className="text-xs text-red-300/70">此動作將清除所有已儲存的員工、獎項、中獎名單與 BGM 設定，並恢復為預設值。</p>
                                     <button
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                            e.stopPropagation();
                                             if (confirm('確定要清除所有資料並重置系統嗎？此動作無法復原。')) {
                                                 onResetAll();
-                                                onClose();
                                             }
                                         }}
                                         className="bg-red-900/40 hover:bg-red-800 text-red-200 text-xs px-4 py-2 rounded border border-red-500/30 transition-colors"
@@ -705,10 +762,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 {/* Footer */}
                 <div className="flex items-center justify-between px-6 py-4 border-t border-amber-500/20 bg-black/20">
                     <button
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.stopPropagation();
                             if (confirm('確定要清除所有資料並重置系統嗎？此動作無法復原。')) {
                                 onResetAll();
-                                onClose();
                             }
                         }}
                         className="flex items-center gap-2 text-red-400/70 hover:text-red-300 text-sm transition-colors"
@@ -727,5 +784,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
     );
 };
+
 
 export default AdminPanel;

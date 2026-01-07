@@ -54,3 +54,6 @@ export const deleteBGMFile = async (): Promise<void> => {
         request.onerror = () => reject(request.error);
     });
 };
+
+export const clearBGM = deleteBGMFile;
+

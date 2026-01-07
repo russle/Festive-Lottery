@@ -76,6 +76,10 @@ export default function FestiveLottery() {
           aiConfig={lottery.aiConfig}
           onUpdateAIConfig={lottery.updateAIConfig}
           onResetAll={lottery.clearStoredData}
+          onResetEmployees={lottery.resetEmployees}
+          onResetPrizes={lottery.resetPrizes}
+          onResetWinners={lottery.resetWinners}
+          onResetBGM={lottery.resetBGM}
           onClose={() => setShowAdmin(false)}
         />
       )}

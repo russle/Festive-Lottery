@@ -91,6 +91,20 @@ export const clearAllData = (): void => {
 };
 
 /**
+ * 清除員工資料
+ */
+export const clearEmployees = (): void => {
+    localStorage.removeItem(STORAGE_KEYS.EMPLOYEES);
+};
+
+/**
+ * 清除獎品資料
+ */
+export const clearPrizes = (): void => {
+    localStorage.removeItem(STORAGE_KEYS.PRIZES);
+};
+
+/**
  * 清除中獎紀錄
  */
 export const clearWinners = (): void => {
