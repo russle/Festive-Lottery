@@ -133,7 +133,7 @@ export default function FestiveLottery() {
             </span>
           </div>
         </div>
-        <div className="text-right">
+        <div className="flex flex-col items-center">
           <div className="text-xs text-amber-300/80 mb-1 tracking-widest uppercase">目前抽獎獎項</div>
           <div className="text-sm md:text-xl font-bold text-white bg-red-900/40 px-4 py-1 md:px-6 md:py-2 rounded-full border border-amber-500/50 backdrop-blur-sm flex items-center gap-2">
             <span>{lottery.currentPrize?.name || '載入中...'}</span>
