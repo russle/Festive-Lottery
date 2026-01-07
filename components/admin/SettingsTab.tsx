@@ -354,7 +354,11 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                             </div>
                         </div>
                         <div className="qr-code-section hidden">
-                            <QRCodeSVG value={`${apiUrl}/check`} size={400} level="H" />
+                            <QRCodeSVG
+                                value={`${window.location.origin}/check?api=${encodeURIComponent(apiUrl)}&host=${encodeURIComponent(hostId)}`}
+                                size={400}
+                                level="H"
+                            />
                         </div>
                     </div>
                 </section>
