@@ -871,7 +871,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                         <div className="flex flex-col md:flex-row items-center gap-6">
                                             <div className="bg-white p-2 rounded-lg shadow-xl shrink-0">
                                                 <QRCodeSVG
-                                                    value={`${window.location.origin}/check`}
+                                                    value={`${window.location.origin}/check?api=${encodeURIComponent(apiUrl)}`}
                                                     size={160}
                                                     level="H"
                                                     includeMargin={true}
@@ -884,7 +884,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                                 </p>
                                                 <div className="p-2 bg-black/40 rounded border border-purple-500/30">
                                                     <p className="text-xs text-purple-300 break-all">
-                                                        {window.location.origin}/check
+                                                        {window.location.origin}/check?api={encodeURIComponent(apiUrl)}
                                                     </p>
                                                 </div>
                                                 <button

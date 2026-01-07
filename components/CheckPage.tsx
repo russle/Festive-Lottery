@@ -1,7 +1,7 @@
 // 中獎查詢頁面 (手機用戶掃描 QR Code 後進入)
 import React, { useState } from 'react';
 import { Search, PartyPopper, Frown } from 'lucide-react';
-import { loadApiUrl } from '../utils/storage';
+import { loadApiUrl, saveApiUrl } from '../utils/storage';
 
 interface WinRecord {
     prizeName: string;
@@ -22,6 +22,15 @@ export const CheckPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState<CheckResult | null>(null);
     const [error, setError] = useState('');
+
+    // 解析網址中的 API URL 參數
+    React.useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const apiUrlParam = params.get('api');
+        if (apiUrlParam) {
+            saveApiUrl(decodeURIComponent(apiUrlParam));
+        }
+    }, []);
 
     const handleCheck = async () => {
         if (!employeeId.trim()) {
