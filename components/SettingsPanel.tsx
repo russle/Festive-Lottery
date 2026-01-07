@@ -52,16 +52,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     )}
 
                     {/* 手機模擬器按鈕 */}
-                    <button
-                        onClick={() => {
-                            onOpenMobileCheck();
-                            onClose();
-                        }}
-                        className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 text-white text-xs font-bold py-2 rounded flex items-center justify-center gap-2 hover:shadow-lg transition-all"
-                    >
-                        <Smartphone size={14} />
-                        開啟手機查獎模擬器
-                    </button>
+                    {/* (Mobile Simulator Button Removed) */}
 
                     {/* 音效開關 */}
                     <div className="flex justify-between items-center">
