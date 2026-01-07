@@ -23,9 +23,7 @@ CREATE TABLE IF NOT EXISTS winners (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     prize_id INTEGER NOT NULL,
     employee_id TEXT NOT NULL,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (prize_id) REFERENCES prizes(id),
-    FOREIGN KEY (employee_id) REFERENCES employees(id)
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 索引
