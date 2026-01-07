@@ -27,5 +27,8 @@
     "include": [
         "**/*.ts",
         "**/*.tsx"
+    ],
+    "exclude": [
+        "workers"
     ]
 }

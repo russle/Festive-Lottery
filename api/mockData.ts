@@ -1,6 +1,6 @@
 // Mock 資料生成器
 import type { Employee, Prize, Winner } from '../types';
-import { DEFAULT_PRIZES, DEPARTMENTS } from '../constants';
+import { DEPARTMENTS } from '../constants';
 
 /** 生成模擬員工資料 */
 export const generateMockEmployees = (count: number = 150): Employee[] => {

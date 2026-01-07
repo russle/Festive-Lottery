@@ -24,7 +24,6 @@ import {
 } from './components';
 
 // 匯入常數
-import { DEFAULT_CONFIG } from './constants';
 
 export default function FestiveLottery() {
   const lottery = useLottery();

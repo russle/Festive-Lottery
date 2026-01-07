@@ -58,7 +58,6 @@ export interface UseLotteryReturn {
     resetEmployees: () => void;
     resetPrizes: () => void;
     resetWinners: () => void;
-    resetWinners: () => void;
     resetBGM: () => void;
     updateCustomLogo: (logoData: string) => void;
     resetCustomLogo: () => void;
