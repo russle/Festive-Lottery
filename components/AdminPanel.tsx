@@ -1,6 +1,6 @@
 // 管理面板元件
 import React, { useState, useEffect } from 'react';
-import { X, Download, Trash2, Check, AlertTriangle, Music, Play, Pause, Volume2, Settings as SettingsIcon, ExternalLink } from 'lucide-react';
+import { X, Download, Trash2, Check, AlertTriangle, Music, Play, Pause, Volume2, Settings as SettingsIcon, ExternalLink, Cloud, RefreshCw } from 'lucide-react';
 import type { Employee, Prize, Winner, AIConfig } from '../types';
 import { FileUploader } from './FileUploader';
 import { DataPreview } from './DataPreview';
@@ -16,6 +16,7 @@ import {
 
 import { soundManager } from '../utils/sound';
 import { saveBGMFile, loadBGMFile } from '../utils/db';
+import { cloudLotteryAPI } from '../api/lottery';
 
 interface AdminPanelProps {
     currentEmployees: Employee[];
@@ -52,6 +53,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const [bgmFileName, setBgmFileName] = useState<string | null>(null);
     const [isBgmPlaying, setIsBgmPlaying] = useState(false);
     const [volume, setVolume] = useState(soundManager.getBGMVolume() * 100);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [syncStatus, setSyncStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
     // 載入儲存的 BGM
     useEffect(() => {
@@ -549,6 +552,53 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                     <p className="text-[10px] text-amber-600">金鑰僅儲存於本地瀏覽器。OpenAI 模型預設使用 gpt-4o-mini。</p>
                                 </div>
 
+                            </section>
+
+                            <section className="space-y-4 pt-4 border-t border-amber-500/10">
+                                <div className="flex items-center gap-2 text-sky-300 font-bold">
+                                    <Cloud size={20} />
+                                    <h3>雲端同步 (Cloudflare D1)</h3>
+                                </div>
+                                <p className="text-sm text-amber-200/60 leading-relaxed">
+                                    將本地資料同步到雲端，讓多台裝置可以共享相同的員工與獎項名單。
+                                </p>
+                                <div className="p-4 bg-sky-900/10 border border-sky-500/20 rounded-xl space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs text-sky-300">員工：{currentEmployees.length} 人</p>
+                                            <p className="text-xs text-sky-300">獎項：{currentPrizes.length} 項</p>
+                                        </div>
+                                        <button
+                                            onClick={async () => {
+                                                setIsSyncing(true);
+                                                setSyncStatus('idle');
+                                                try {
+                                                    await cloudLotteryAPI.syncEmployees(currentEmployees);
+                                                    await cloudLotteryAPI.syncPrizes(currentPrizes);
+                                                    setSyncStatus('success');
+                                                } catch {
+                                                    setSyncStatus('error');
+                                                }
+                                                setIsSyncing(false);
+                                            }}
+                                            disabled={isSyncing}
+                                            className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 disabled:bg-sky-800 text-white text-xs px-4 py-2 rounded border border-sky-500/30 transition-colors"
+                                        >
+                                            <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
+                                            {isSyncing ? '同步中...' : '同步到雲端'}
+                                        </button>
+                                    </div>
+                                    {syncStatus === 'success' && (
+                                        <p className="text-xs text-green-400 flex items-center gap-1">
+                                            <Check size={14} /> 同步成功！
+                                        </p>
+                                    )}
+                                    {syncStatus === 'error' && (
+                                        <p className="text-xs text-red-400 flex items-center gap-1">
+                                            <AlertTriangle size={14} /> 同步失敗，請檢查網路連線
+                                        </p>
+                                    )}
+                                </div>
                             </section>
 
                             <section className="space-y-4 pt-4 border-t border-amber-500/10">
