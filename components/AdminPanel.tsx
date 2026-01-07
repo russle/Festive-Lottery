@@ -282,6 +282,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             const prizeRes = await cloudLotteryAPI.syncPrizes(currentPrizes);
             if (!prizeRes.success) throw new Error('同步獎項資料失敗: ' + prizeRes.error);
 
+            // 同步中獎名單 (逐筆上傳)
+            if (winners.length > 0) {
+                // 先清除雲端舊的中獎資料，避免重複或衝突
+                await cloudLotteryAPI.resetWinners();
+
+                // 並行上傳所有中獎者
+                const winnerPromises = winners.map(w => cloudLotteryAPI.saveWinner(w));
+                await Promise.all(winnerPromises);
+            }
+
             setSyncStatus('success');
             setSyncMessage('同步完成！您現在可以使用 QR Code 查獎。');
         } catch (error) {
