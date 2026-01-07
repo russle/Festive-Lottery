@@ -4,12 +4,13 @@
 
 ## 🌟 特色功能
 
-- **模組化架構**：易於擴展與維護。
+- **模組化架構**：易於擴展與維護，元件化設計。
 - **動態資料管理**：支援透過 CSV 或 Excel (.xlsx, .xls) 上傳員工名單與獎項清單。
-- **AI 吉祥話**：整合 Google Gemini API，生成喜慶的獎項介紹與得獎祝賀。
+- **AI 吉祥話**：整合 Google Gemini / OpenAI API，生成喜慶的獎項介紹與得獎祝賀。
 - **QR Code 查獎**：員工可掃碼即時查詢中獎狀態 (需部署 Cloudflare Worker)。
 - **資料持久化**：使用 LocalStorage 儲存資料，重新整理頁面不丟失。
 - **視覺效果**：動態粒子背景、金色漸層文字與節慶裝飾。
+- **穩定性保障**：內建 Error Boundary 機制，發生錯誤時優雅降級。
 
 ## 💡 系統功能說明
 本系統支援兩種運作模式，依據您的需求選擇：
@@ -71,13 +72,18 @@ npm run dev
 
 ## 🛠 技術棧
 
-- **Core**: React 18, TypeScript
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
-- **Build Tool**: Vite
-- **AI**: Google Gemini API
+| 類別 | 技術 |
+|------|------|
+| **Frontend** | React 18, TypeScript |
+| **Styling** | Tailwind CSS |
+| **Build Tool** | Vite |
+| **Icons** | Lucide React |
+| **AI Integration** | Google Gemini API, OpenAI API |
+| **Cloud Backend** | Cloudflare Pages, Workers, D1 Database |
+| **Data Parsing** | SheetJS (xlsx) |
 
 ## 📝 授權
 
-此專案基於 **Apache License 2.0** 授權。詳細內容請參閱專案授權條款。
+此專案基於 **Apache License 2.0** 授權。詳細內容請參閱 [LICENSE](./LICENSE) 檔案。
+
 
