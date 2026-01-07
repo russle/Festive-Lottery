@@ -230,7 +230,6 @@ export default function FestiveLottery() {
           onToggleSound={() => lottery.setSoundEnabled(!lottery.soundEnabled)}
           onSetPhase={lottery.setPhase}
           onResetCurrentPrize={lottery.resetCurrentPrize}
-          onOpenMobileCheck={() => setShowMobileCheck(true)}
           onOpenAdmin={() => setShowAdmin(true)}
         />
       )}

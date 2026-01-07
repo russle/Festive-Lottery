@@ -1,6 +1,6 @@
 // 設定面板元件
 import React from 'react';
-import { X, Volume2, VolumeX, Smartphone, Database } from 'lucide-react';
+import { X, Volume2, VolumeX, Database } from 'lucide-react';
 import type { Phase } from '../types';
 
 interface SettingsPanelProps {
@@ -10,7 +10,6 @@ interface SettingsPanelProps {
     onToggleSound: () => void;
     onSetPhase: (phase: Phase) => void;
     onResetCurrentPrize: () => void;
-    onOpenMobileCheck: () => void;
     onOpenAdmin?: () => void;
 }
 
@@ -21,7 +20,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     onToggleSound,
     onSetPhase,
     onResetCurrentPrize,
-    onOpenMobileCheck,
     onOpenAdmin,
 }) => {
     if (!show) return null;
