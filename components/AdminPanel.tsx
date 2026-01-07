@@ -1,6 +1,7 @@
 // 管理面板元件
 import React, { useState, useEffect } from 'react';
-import { X, Download, Trash2, Check, AlertTriangle, Music, Play, Pause, Volume2, Settings as SettingsIcon, ExternalLink, Cloud, RefreshCw } from 'lucide-react';
+import { X, Download, Trash2, Check, AlertTriangle, Music, Play, Pause, Volume2, Settings as SettingsIcon, ExternalLink, Cloud, RefreshCw, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import type { Employee, Prize, Winner, AIConfig } from '../types';
 import { FileUploader } from './FileUploader';
 import { DataPreview } from './DataPreview';
@@ -598,6 +599,68 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                             <AlertTriangle size={14} /> 同步失敗，請檢查網路連線
                                         </p>
                                     )}
+                                </div>
+                            </section>
+
+                            <section className="space-y-4 pt-4 border-t border-amber-500/10">
+                                <div className="flex items-center gap-2 text-purple-300 font-bold">
+                                    <QrCode size={20} />
+                                    <h3>QR Code 中獎查詢</h3>
+                                </div>
+                                <p className="text-sm text-amber-200/60 leading-relaxed">
+                                    將此 QR Code 投影或列印，讓參與者描描即可查詢自己的中獎結果。
+                                </p>
+                                <div className="p-4 bg-purple-900/10 border border-purple-500/20 rounded-xl">
+                                    <div className="flex items-center gap-6">
+                                        <div className="bg-white p-3 rounded-xl">
+                                            <QRCodeSVG
+                                                value={`${window.location.origin}/check`}
+                                                size={120}
+                                                level="H"
+                                            />
+                                        </div>
+                                        <div className="flex-1 space-y-2">
+                                            <p className="text-xs text-purple-300 break-all">
+                                                {window.location.origin}/check
+                                            </p>
+                                            <button
+                                                onClick={() => {
+                                                    const svg = document.querySelector('.qr-code-container svg');
+                                                    if (!svg) return;
+                                                    const svgData = new XMLSerializer().serializeToString(svg);
+                                                    const canvas = document.createElement('canvas');
+                                                    canvas.width = 400;
+                                                    canvas.height = 400;
+                                                    const ctx = canvas.getContext('2d');
+                                                    const img = new Image();
+                                                    img.onload = () => {
+                                                        if (ctx) {
+                                                            ctx.fillStyle = 'white';
+                                                            ctx.fillRect(0, 0, 400, 400);
+                                                            ctx.drawImage(img, 0, 0, 400, 400);
+                                                            const pngUrl = canvas.toDataURL('image/png');
+                                                            const a = document.createElement('a');
+                                                            a.href = pngUrl;
+                                                            a.download = 'qrcode-lottery-check.png';
+                                                            a.click();
+                                                        }
+                                                    };
+                                                    img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+                                                }}
+                                                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white text-xs px-4 py-2 rounded transition-colors"
+                                            >
+                                                <Download size={14} />
+                                                下載 QR Code
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="qr-code-container hidden">
+                                        <QRCodeSVG
+                                            value={`${window.location.origin}/check`}
+                                            size={400}
+                                            level="H"
+                                        />
+                                    </div>
                                 </div>
                             </section>
 
