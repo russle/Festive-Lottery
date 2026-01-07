@@ -371,16 +371,23 @@ export const useLottery = (): UseLotteryReturn => {
     // 清除所有儲存的資料
     const clearStoredData = useCallback(() => {
         clearAllData();
-        // 重新載入預設資料
-        lotteryAPI.getEmployees().then(res => {
-            if (res.success && res.data) setEmployees(res.data);
-        });
-        lotteryAPI.getPrizes().then(res => {
-            if (res.success && res.data) setPrizes(res.data);
+        // 清除雲端中獎紀錄
+        lotteryAPI.resetWinners();
+        // 重置同步計數
+        lastSyncedCount.current = 0;
+        // 重新載入預設資料 (從 mock，不從雲端)
+        import('../api/lottery').then(({ mockLotteryAPI }) => {
+            mockLotteryAPI.getEmployees().then(res => {
+                if (res.success && res.data) setEmployees(res.data);
+            });
+            mockLotteryAPI.getPrizes().then(res => {
+                if (res.success && res.data) setPrizes(res.data);
+            });
         });
         setWinners([]);
         setCurrentPrizeIndex(0);
         setPhase('standby');
+        console.log('[Reset] All data cleared (local + cloud)');
     }, []);
 
     return {
