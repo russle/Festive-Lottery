@@ -7,14 +7,12 @@ interface WallPhaseProps {
     winners: Winner[];
     prizes: Prize[];
     onReset: () => void;
-    onOpenMobileCheck: () => void;
 }
 
 export const WallPhase: React.FC<WallPhaseProps> = ({
     winners,
     prizes,
     onReset,
-    onOpenMobileCheck,
 }) => {
     return (
         <div className="w-full max-w-6xl mx-auto h-[80vh] overflow-y-auto z-20 pr-4 custom-scrollbar">
@@ -24,20 +22,7 @@ export const WallPhase: React.FC<WallPhaseProps> = ({
                 </h2>
                 <p className="text-amber-400/60">恭喜所有獲得好運的同仁</p>
 
-                {/* QR Code 快速入口 */}
-                <div
-                    className="absolute right-0 top-0 cursor-pointer group"
-                    onClick={onOpenMobileCheck}
-                >
-                    <div className="bg-white p-2 rounded-lg shadow-lg transform transition-transform group-hover:scale-105">
-                        <img
-                            src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=check&color=000&bgcolor=fff"
-                            alt="Check QR"
-                            className="w-20 h-20"
-                        />
-                        <div className="text-black text-[10px] font-bold text-center mt-1">掃碼查獎</div>
-                    </div>
-                </div>
+
             </div>
 
             <div className="grid grid-cols-1 gap-8">

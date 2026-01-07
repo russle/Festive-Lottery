@@ -9,14 +9,12 @@ interface JoinPhaseProps {
     joiners: Joiner[];
     participantCount: number;
     onStart: () => void;
-    onOpenMobileCheck: () => void;
 }
 
 export const JoinPhase: React.FC<JoinPhaseProps> = ({
     joiners,
     participantCount,
     onStart,
-    onOpenMobileCheck,
 }) => {
     return (
         <div className="text-center w-full max-w-4xl flex flex-col items-center animate-fade-in-up relative">
@@ -43,12 +41,8 @@ export const JoinPhase: React.FC<JoinPhaseProps> = ({
 
             {/* QR Code */}
             <div
-                className="relative p-4 bg-white rounded-2xl shadow-[0_0_50px_rgba(245,158,11,0.5)] border-4 border-amber-500/50 mb-8 cursor-pointer group"
-                onClick={onOpenMobileCheck}
+                className="relative p-4 bg-white rounded-2xl shadow-[0_0_50px_rgba(245,158,11,0.5)] border-4 border-amber-500/50 mb-8"
             >
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white font-bold text-lg rounded-lg transition-opacity z-10">
-                    點擊模擬手機查獎
-                </div>
                 <img
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=${QR_CONFIG.size}x${QR_CONFIG.size}&data=${encodeURIComponent(QR_CONFIG.joinUrl)}&color=581c87&bgcolor=fff`}
                     alt="QR Code"

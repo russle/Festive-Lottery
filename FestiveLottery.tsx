@@ -14,7 +14,6 @@ import {
   FestiveBackground,
   OrnamentCorner,
   SettingsPanel,
-  MobileCheckSimulator,
   AdminPanel,
   StandbyPhase,
   JoinPhase,
@@ -30,7 +29,6 @@ import {
 export default function FestiveLottery() {
   const lottery = useLottery();
   const [showControls, setShowControls] = useState(false);
-  const [showMobileCheck, setShowMobileCheck] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
 
@@ -63,14 +61,7 @@ export default function FestiveLottery() {
     <div className="relative w-full h-screen overflow-hidden bg-[#2a0a12] font-sans text-amber-50 selection:bg-amber-500/30">
       <FestiveBackground />
 
-      {/* 手機查獎模擬器 Overlay */}
-      {showMobileCheck && (
-        <MobileCheckSimulator
-          winners={lottery.winners}
-          prizes={lottery.prizes}
-          onClose={() => setShowMobileCheck(false)}
-        />
-      )}
+
 
       {/* 管理面板 Overlay */}
       {showAdmin && (
@@ -172,7 +163,6 @@ export default function FestiveLottery() {
             joiners={lottery.joiners}
             participantCount={lottery.participantCount}
             onStart={lottery.startCountdown}
-            onOpenMobileCheck={() => setShowMobileCheck(true)}
           />
         )}
 
@@ -216,7 +206,6 @@ export default function FestiveLottery() {
             winners={lottery.winners}
             prizes={lottery.prizes}
             onReset={lottery.resetAll}
-            onOpenMobileCheck={() => setShowMobileCheck(true)}
           />
         )}
       </main>

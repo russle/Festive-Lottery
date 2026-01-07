@@ -3,7 +3,7 @@ export { FestiveBackground } from './FestiveBackground';
 export { GoldenText } from './GoldenText';
 export { OrnamentCorner } from './OrnamentCorner';
 export { SettingsPanel } from './SettingsPanel';
-export { MobileCheckSimulator } from './MobileCheckSimulator';
+export { ErrorBoundary } from './ErrorBoundary';
 export { FileUploader } from './FileUploader';
 export { DataPreview } from './DataPreview';
 export { AdminPanel } from './AdminPanel';
