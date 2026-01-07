@@ -51,8 +51,9 @@ export const CheckPage: React.FC = () => {
             const res = await fetch(`${apiUrl}/api/check/${encodeURIComponent(employeeId.trim())}`);
             const json = await res.json();
             setResult(json);
-        } catch (err) {
-            setError('查詢失敗，請檢查網路連線');
+        } catch (err: any) {
+            console.error('Check failed:', err);
+            setError(`查詢失敗：${err.message || '請檢查網路連線'}`);
         } finally {
             setIsLoading(false);
         }

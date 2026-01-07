@@ -253,8 +253,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     };
 
     const handleSaveApiUrl = () => {
-        saveApiUrl(apiUrl);
-        alert('雲端 API 設定已儲存');
+        let url = apiUrl.trim();
+        if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+            url = `https://${url}`;
+        }
+        // Remove trailing slash
+        url = url.replace(/\/$/, '');
+
+        setApiUrlState(url);
+        saveApiUrl(url);
+        alert('雲端 API 設定已儲存：' + url);
     };
 
     const handleManualSync = async () => {
