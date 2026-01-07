@@ -1,6 +1,6 @@
 # Festive Lottery - 2026 紫氣東來・尾牙盛典
 
-這是一個基於 **React 18**、**TypeScript** 和 **Tailwind CSS** 開發的節慶抽獎系統，專為大型企業年終活動、尾牙或春酒設計。
+這是一個基於 **React 18**、**TypeScript** 和 **Tailwind CSS** 開發的節慶抽獎系統，專為企業年終活動、尾牙或春酒設計。
 
 ## 🌟 特色功能
 
@@ -22,23 +22,8 @@
 
 ### 2. QR Code 查獎功能 (雲端模式)
 - **支援多主機隔離**：您可以在「後台管理 > 雲端同步設定」中設定 **主機識別碼 (Host ID)**。不同的主機（例如 A 廳與 B 廳）使用同一個 Worker URL 也不會互相覆蓋中獎名單。
-- **部署需求**：需將本專案部署至 Cloudflare Pages，並綁定 D1 資料庫。
+- **部署需求**：需將本專案部署至 Cloudflare Pages/Worker，並綁定 D1 資料庫。
 - **自動帶參**：產生的 QR Code 會自動包含 `host` 參數，員工掃描後能對應到正確的主機名單。
-
-## ⚠️ 資料庫遷移說明
-若您是從舊版本升級，或初次部署雲端版本，請務必在 Cloudflare D1 管理後台執行以下 SQL 設定，以支援 Host ID 功能：
-
-```sql
--- 為資料表增加 host_id 欄位
-ALTER TABLE employees ADD COLUMN host_id TEXT DEFAULT 'default';
-ALTER TABLE prizes ADD COLUMN host_id TEXT DEFAULT 'default';
-ALTER TABLE winners ADD COLUMN host_id TEXT DEFAULT 'default';
-
--- 建立索引以優化查詢效能
-CREATE INDEX IF NOT EXISTS idx_employees_host ON employees(host_id);
-CREATE INDEX IF NOT EXISTS idx_prizes_host ON prizes(host_id);
-CREATE INDEX IF NOT EXISTS idx_winners_host ON winners(host_id);
-```
 
 ## 🎲 抽獎機制說明 (公平性宣告)
 本系統採用業界標準的 **亂數洗牌演算法 (Fisher-Yates Shuffle)** 變體：
