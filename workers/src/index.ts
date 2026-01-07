@@ -58,7 +58,8 @@ export default {
                         return errorResponse('employees must be an array');
                     }
 
-                    // Clear existing and insert new
+                    // Clear existing (Must clear winners first due to FK constraints)
+                    await env.DB.prepare('DELETE FROM winners').run();
                     await env.DB.prepare('DELETE FROM employees').run();
 
                     for (const emp of employees) {
@@ -95,7 +96,8 @@ export default {
                         return errorResponse('prizes must be an array');
                     }
 
-                    // Clear existing and insert new
+                    // Clear existing (Must clear winners first due to FK constraints)
+                    await env.DB.prepare('DELETE FROM winners').run();
                     await env.DB.prepare('DELETE FROM prizes').run();
 
                     for (const prize of prizes) {
