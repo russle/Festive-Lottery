@@ -2,7 +2,8 @@
 // 模組化版本 - 2026 紫氣東來・尾牙盛典抽獎系統
 
 import { useEffect, useState } from 'react';
-import { Settings, ChevronRight } from 'lucide-react';
+import { Settings, ChevronRight, QrCode, X } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 // 匯入自訂 Hook
 import { useLottery } from './hooks/useLottery';
@@ -30,6 +31,7 @@ export default function FestiveLottery() {
   const [showControls, setShowControls] = useState(false);
   const [showMobileCheck, setShowMobileCheck] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   // 鍵盤事件
   useEffect(() => {
@@ -234,12 +236,63 @@ export default function FestiveLottery() {
 
       {/* Settings Button */}
       {!showControls && (
-        <button
-          onClick={() => setShowControls(true)}
-          className="fixed bottom-4 right-4 p-3 bg-red-900/80 border border-amber-500/30 rounded-full text-amber-400 hover:text-white hover:bg-red-800 hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-all z-50"
-        >
-          <Settings size={20} />
-        </button>
+        <div className="fixed bottom-4 right-4 z-50 flex gap-4">
+          {/* Public QR Code Button */}
+          <button
+            onClick={() => setShowQrModal(true)}
+            className="p-3 bg-purple-900/80 border border-purple-500/30 rounded-full text-purple-300 hover:text-white hover:bg-purple-800 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all"
+            title="顯示查獎 QR Code"
+          >
+            <QrCode size={20} />
+          </button>
+
+          {/* Admin Settings Button */}
+          <button
+            onClick={() => setShowControls(true)}
+            className="p-3 bg-red-900/80 border border-amber-500/30 rounded-full text-amber-400 hover:text-white hover:bg-red-800 hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-all"
+          >
+            <Settings size={20} />
+          </button>
+        </div>
+      )}
+
+      {/* QR Code Modal for Public */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative bg-[#1a1025] border border-purple-500/30 p-8 rounded-2xl shadow-[0_0_50px_rgba(168,85,247,0.3)] max-w-sm w-full text-center space-y-6">
+            <button
+              onClick={() => setShowQrModal(false)}
+              className="absolute top-4 right-4 text-purple-300/50 hover:text-white transition-colors"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300">
+                掃描查獎
+              </h3>
+              <p className="text-purple-200/60 text-sm">
+                請使用手機掃描下方 QR Code<br />輸入工號查詢中獎狀態
+              </p>
+            </div>
+
+            <div className="bg-white p-4 rounded-xl inline-block shadow-xl">
+              <QRCodeSVG
+                value={`${window.location.origin}/check`}
+                size={200}
+                level="Q"
+                includeMargin={true}
+              />
+            </div>
+
+            <div className="bg-black/30 p-3 rounded-lg border border-purple-500/20">
+              <p className="text-xs text-purple-300/50 mb-1">或是輸入網址</p>
+              <p className="text-sm font-mono text-purple-200 select-all">
+                {window.location.host}/check
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Global Inline Styles (for animations not easily extracted) */}

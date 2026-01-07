@@ -18,7 +18,7 @@ export const RollingPhase: React.FC<RollingPhaseProps> = ({ rollingName, onStop 
 
             <div className="relative bg-red-950/60 border-y-4 border-amber-500/50 backdrop-blur-md p-16 overflow-hidden rounded-2xl shadow-2xl">
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-amber-500/10 to-transparent" />
-                <div className="relative text-7xl md:text-9xl font-black text-white tracking-tight drop-shadow-md">
+                <div className={`relative font-black text-white tracking-tight drop-shadow-md whitespace-nowrap ${rollingName.length > 3 ? 'text-5xl md:text-7xl' : 'text-7xl md:text-9xl'}`}>
                     {rollingName}
                 </div>
             </div>
