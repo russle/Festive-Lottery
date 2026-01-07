@@ -66,16 +66,16 @@ export const CheckPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-red-900 via-amber-900 to-yellow-800 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-fuchsia-900 to-rose-900 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* 標題 */}
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-amber-200 mb-2">🎊 中獎查詢</h1>
-                    <p className="text-amber-300/70 text-sm">輸入您的員工編號查詢中獎結果</p>
+                    <h1 className="text-3xl font-bold text-fuchsia-200 mb-2">🎊 中獎查詢</h1>
+                    <p className="text-fuchsia-300/70 text-sm">輸入您的員工編號查詢中獎結果</p>
                 </div>
 
                 {/* 查詢表單 */}
-                <div className="bg-black/30 backdrop-blur-md rounded-2xl border border-amber-500/30 p-6 shadow-2xl">
+                <div className="bg-black/30 backdrop-blur-md rounded-2xl border border-fuchsia-500/30 p-6 shadow-2xl">
                     <div className="flex gap-2 mb-4">
                         <input
                             type="text"
@@ -83,13 +83,13 @@ export const CheckPage: React.FC = () => {
                             onChange={(e) => setEmployeeId(e.target.value)}
                             onKeyPress={handleKeyPress}
                             placeholder="請輸入員工編號"
-                            className="flex-1 bg-black/40 border border-amber-500/30 rounded-xl px-4 py-3 text-amber-100 placeholder:text-amber-700 focus:outline-none focus:border-amber-400 text-center text-lg"
+                            className="flex-1 bg-black/40 border border-fuchsia-500/30 rounded-xl px-4 py-3 text-fuchsia-100 placeholder:text-fuchsia-700 focus:outline-none focus:border-fuchsia-400 text-center text-lg"
                             disabled={isLoading}
                         />
                         <button
                             onClick={handleCheck}
                             disabled={isLoading}
-                            className="bg-amber-600 hover:bg-amber-500 disabled:bg-amber-800 text-white px-6 py-3 rounded-xl transition-colors flex items-center gap-2"
+                            className="bg-fuchsia-600 hover:bg-fuchsia-500 disabled:bg-fuchsia-800 text-white px-6 py-3 rounded-xl transition-colors flex items-center gap-2"
                         >
                             <Search size={20} />
                         </button>
@@ -102,7 +102,7 @@ export const CheckPage: React.FC = () => {
                     {isLoading && (
                         <div className="text-center py-8">
                             <div className="animate-spin text-4xl mb-2">🎰</div>
-                            <p className="text-amber-300">查詢中...</p>
+                            <p className="text-fuchsia-300">查詢中...</p>
                         </div>
                     )}
 
@@ -110,37 +110,34 @@ export const CheckPage: React.FC = () => {
                     {result && result.hasWon && (
                         <div className="text-center py-6 space-y-4">
                             <div className="text-6xl animate-bounce">🎉</div>
-                            <h2 className="text-2xl font-bold text-amber-200 flex items-center justify-center gap-2">
-                                <PartyPopper className="text-yellow-400" />
+                            <h2 className="text-2xl font-bold text-fuchsia-200 flex items-center justify-center gap-2">
+                                <PartyPopper className="text-pink-400" />
                                 恭喜中獎！
-                                <PartyPopper className="text-yellow-400" />
+                                <PartyPopper className="text-pink-400" />
                             </h2>
                             <div className="space-y-3 mt-4">
                                 {result.data.map((record, index) => (
                                     <div
                                         key={index}
-                                        className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/40 rounded-xl p-4"
+                                        className="bg-gradient-to-r from-fuchsia-500/20 to-pink-500/20 border border-fuchsia-400/40 rounded-xl p-4"
                                     >
                                         <div className="text-4xl mb-2">{record.prizeIcon}</div>
-                                        <p className="text-xl font-bold text-amber-100">{record.prizeName}</p>
-                                        <p className="text-xs text-amber-400/60 mt-1">
-                                            {new Date(record.timestamp).toLocaleString('zh-TW')}
+                                        <p className="text-xl font-bold text-fuchsia-100">{record.prizeName}</p>
+                                        <p className="text-xs text-fuchsia-400/60 mt-1">
+                                            {new Date(record.timestamp).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}
                                         </p>
                                     </div>
                                 ))}
                             </div>
-                            <p className="text-amber-300/80 text-sm mt-4">
-                                請攜帶員工證至櫃台領獎 🏆
-                            </p>
                         </div>
                     )}
 
                     {/* 未中獎 */}
                     {result && !result.hasWon && (
                         <div className="text-center py-8 space-y-4">
-                            <Frown size={64} className="mx-auto text-amber-500/40" />
-                            <h2 className="text-xl text-amber-300">很遺憾，尚未中獎</h2>
-                            <p className="text-amber-400/60 text-sm">
+                            <Frown size={64} className="mx-auto text-fuchsia-500/40" />
+                            <h2 className="text-xl text-fuchsia-300">很遺憾，尚未中獎</h2>
+                            <p className="text-fuchsia-400/60 text-sm">
                                 別灰心，後續還有更多大獎等你來抽！🍀
                             </p>
                         </div>
@@ -148,7 +145,7 @@ export const CheckPage: React.FC = () => {
                 </div>
 
                 {/* 底部資訊 */}
-                <p className="text-center text-amber-500/40 text-xs mt-6">
+                <p className="text-center text-fuchsia-500/40 text-xs mt-6">
                     © 2026 尾牙抽獎系統
                 </p>
             </div>
