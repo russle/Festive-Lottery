@@ -1,0 +1,11 @@
+name = "festive-lottery-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "festive-lottery-db"
+database_id = "825a034a-ba6a-46d5-9a35-17f0d375bfed"
+
+[vars]
+ENVIRONMENT = "production"
