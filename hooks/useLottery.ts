@@ -300,17 +300,25 @@ export const useLottery = (): UseLotteryReturn => {
     }, [currentPrize]);
 
     const generatePrizeAI = useCallback(async () => {
+        // 防抖：如果正在載入或已有結果，不重複調用
+        if (isAiLoading) return;
+        if (aiCommentary && aiCommentary !== '福星高照，財源廣進！') return;
         if (!currentPrize) return;
+
         setIsAiLoading(true);
         setAiCommentary('');
         const text = await generatePrizeIntro(currentPrize.name);
         setAiCommentary(text);
         setIsAiLoading(false);
-    }, [currentPrize]);
+    }, [currentPrize, isAiLoading, aiCommentary]);
 
     const generateWinnerAI = useCallback(async () => {
+        // 防抖：如果正在載入，不重複調用
+        if (isAiLoading) return;
+
         const lastWinner = winners[winners.length - 1];
         if (!lastWinner || !currentPrize) return;
+
         setIsAiLoading(true);
         setAiCommentary('');
         const text = await generateWinnerComment(
@@ -320,7 +328,7 @@ export const useLottery = (): UseLotteryReturn => {
         );
         setAiCommentary(text);
         setIsAiLoading(false);
-    }, [winners, currentPrize]);
+    }, [winners, currentPrize, isAiLoading]);
 
     // 動態更新員工資料
     const updateEmployees = useCallback((newEmployees: Employee[]) => {
