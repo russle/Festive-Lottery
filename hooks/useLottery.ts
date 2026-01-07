@@ -119,10 +119,28 @@ export const useLottery = (): UseLotteryReturn => {
         loadData();
     }, []);
 
-    // 中獎紀錄變更時自動儲存
+    // 中獎紀錄變更時自動儲存到本地及雲端
+    const lastSyncedCount = useRef(0);
     useEffect(() => {
         if (winners.length > 0) {
             saveWinners(winners);
+
+            // 只同步新增的中獎者到雲端
+            const newWinners = winners.slice(lastSyncedCount.current);
+            if (newWinners.length > 0) {
+                console.log(`[Auto-Sync] Syncing ${newWinners.length} new winner(s) to cloud...`);
+                newWinners.forEach(winner => {
+                    lotteryAPI.saveWinner(winner).then(res => {
+                        if (res.success) {
+                            console.log(`[Auto-Sync] Winner ${winner.employee.name} synced successfully`);
+                        }
+                    });
+                });
+                lastSyncedCount.current = winners.length;
+            }
+        } else {
+            // 清空時重置計數
+            lastSyncedCount.current = 0;
         }
     }, [winners]);
 
