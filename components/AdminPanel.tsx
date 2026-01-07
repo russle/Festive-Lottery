@@ -691,7 +691,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 {/* Footer */}
                 <div className="flex items-center justify-between px-6 py-4 border-t border-amber-500/20 bg-black/20">
                     <button
-                        onClick={onResetAll}
+                        onClick={() => {
+                            if (confirm('確定要清除所有資料並重置系統嗎？此動作無法復原。')) {
+                                onResetAll();
+                                onClose();
+                            }
+                        }}
                         className="flex items-center gap-2 text-red-400/70 hover:text-red-300 text-sm transition-colors"
                     >
                         <Trash2 size={14} />
