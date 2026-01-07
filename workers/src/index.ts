@@ -61,16 +61,21 @@ export default {
                         return errorResponse('employees must be an array');
                     }
 
-                    // Clear existing for this host only
-                    await env.DB.prepare('DELETE FROM winners WHERE host_id = ?').bind(hostId).run();
-                    await env.DB.prepare('DELETE FROM employees WHERE host_id = ?').bind(hostId).run();
+                    // Clear existing for this host only and Insert new in batch
+                    const statements = [
+                        env.DB.prepare('DELETE FROM winners WHERE host_id = ?').bind(hostId),
+                        env.DB.prepare('DELETE FROM employees WHERE host_id = ?').bind(hostId)
+                    ];
 
                     for (const emp of employees) {
-                        await env.DB.prepare(
-                            'INSERT INTO employees (id, name, dept, host_id) VALUES (?, ?, ?, ?)'
-                        ).bind(emp.id, emp.name, emp.dept || '未分類', hostId).run();
+                        statements.push(
+                            env.DB.prepare(
+                                'INSERT INTO employees (id, name, dept, host_id) VALUES (?, ?, ?, ?)'
+                            ).bind(emp.id, emp.name, emp.dept || '未分類', hostId)
+                        );
                     }
 
+                    await env.DB.batch(statements);
                     return jsonResponse({ success: true, count: employees.length });
                 }
 
@@ -98,24 +103,29 @@ export default {
                         return errorResponse('prizes must be an array');
                     }
 
-                    // Clear existing for this host only
-                    await env.DB.prepare('DELETE FROM winners WHERE host_id = ?').bind(hostId).run();
-                    await env.DB.prepare('DELETE FROM prizes WHERE host_id = ?').bind(hostId).run();
+                    // Clear existing for this host only and Insert new in batch
+                    const statements = [
+                        env.DB.prepare('DELETE FROM winners WHERE host_id = ?').bind(hostId),
+                        env.DB.prepare('DELETE FROM prizes WHERE host_id = ?').bind(hostId)
+                    ];
 
                     for (const prize of prizes) {
-                        await env.DB.prepare(
-                            'INSERT INTO prizes (id, name, icon, count, type, count_per_round, host_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
-                        ).bind(
-                            prize.id,
-                            prize.name,
-                            prize.icon || '🎁',
-                            prize.count || 1,
-                            prize.type || 'single',
-                            prize.countPerRound || 1,
-                            hostId
-                        ).run();
+                        statements.push(
+                            env.DB.prepare(
+                                'INSERT INTO prizes (id, name, icon, count, type, count_per_round, host_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
+                            ).bind(
+                                prize.id,
+                                prize.name,
+                                prize.icon || '🎁',
+                                prize.count || 1,
+                                prize.type || 'single',
+                                prize.countPerRound || 1,
+                                hostId
+                            )
+                        );
                     }
 
+                    await env.DB.batch(statements);
                     return jsonResponse({ success: true, count: prizes.length });
                 }
 
