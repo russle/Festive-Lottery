@@ -1,6 +1,7 @@
 # Festive Lottery - 2026 紫氣東來・尾牙盛典
 
 這是一個基於 **React 18**、**TypeScript** 和 **Tailwind CSS** 開發的節慶抽獎系統，專為企業年終活動、尾牙或春酒設計。
+範例：https://festive-lottery.pages.dev/
 
 ## 🌟 特色功能
 
