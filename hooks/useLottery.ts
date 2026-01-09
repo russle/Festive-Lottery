@@ -396,12 +396,13 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
             }
 
             // [N26 專屬優化] 諾為 N26 常見模式為送出 Tab/Enter 或 ArrowUp/Down
-            // 我們將這些按鍵統一視為「下一步執行」
+            // - Tab: 回復預設行為 (移動游標)
+            // - 方向鍵/Page鍵: 直接觸發抽獎
             const isNextAction = [
                 'PageDown', 'PageUp',
                 'ArrowDown', 'ArrowUp',
                 'ArrowRight', 'ArrowLeft',
-                'Enter', ' ', 'Tab'
+                'Enter', ' '
             ].includes(e.key);
 
             // 排除簡報器可能送出的標點符號 (如 B 鍵, 句點 ., 或 Escape)
