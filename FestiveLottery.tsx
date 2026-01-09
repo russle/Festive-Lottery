@@ -1,7 +1,7 @@
 // FestiveLottery 主程式入口
 // 模組化版本 - 2026 紫氣東來・尾牙盛典抽獎系統
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Settings, ChevronRight, QrCode, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
