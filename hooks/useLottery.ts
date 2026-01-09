@@ -63,7 +63,8 @@ export interface UseLotteryReturn extends UseEventBrandingReturn, Omit<UseAIComm
 // Main Hook
 // ============================================================================
 
-export const useLottery = (): UseLotteryReturn => {
+export const useLottery = (options: { enableRemote?: boolean } = {}): UseLotteryReturn => {
+    const { enableRemote = true } = options;
     // ========================================================================
     // Sub-hooks (組合模式)
     // ========================================================================
@@ -381,6 +382,49 @@ export const useLottery = (): UseLotteryReturn => {
         setPhase('standby');
         console.log('[Reset] All data cleared (local + cloud)');
     }, []);
+
+    // ========================================================================
+    // Keyboard Remote Control (實體簡報器支援)
+    // ========================================================================
+    useEffect(() => {
+        if (!enableRemote) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // 排除輸入框，避免干擾打字
+            if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+                return;
+            }
+
+            // 實體簡報器常用按鍵映射: PageDown, ArrowRight, Enter, Space
+            const isNextAction = ['PageDown', 'ArrowRight', 'Enter', ' '].includes(e.key);
+
+            if (isNextAction) {
+                e.preventDefault();
+                console.log(`[Remote] Triggered by ${e.key} during phase: ${phase}`);
+
+                switch (phase) {
+                    case 'standby':
+                    case 'join':
+                    case 'completed':
+                        startCountdown();
+                        break;
+                    case 'rolling':
+                        stopRolling();
+                        break;
+                    case 'reveal':
+                    case 'batch_reveal':
+                        nextPrize();
+                        break;
+                    case 'countdown':
+                        // 倒數中不動作，避免誤觸
+                        break;
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [phase, startCountdown, stopRolling, nextPrize]);
 
     // ========================================================================
     // AI Generation Wrappers (使用組合 Hook)

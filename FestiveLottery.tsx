@@ -27,33 +27,12 @@ import {
 // 匯入常數
 
 export default function FestiveLottery() {
-  const lottery = useLottery();
   const [showControls, setShowControls] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
-
-  // 鍵盤事件
-  useEffect(() => {
-    const { phase, startCountdown, stopRolling, nextPrize } = lottery;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        if (phase === 'standby' || phase === 'join') {
-          startCountdown();
-        } else if (phase === 'rolling') {
-          stopRolling();
-        } else if (phase === 'reveal' || phase === 'batch_reveal') {
-          nextPrize();
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [lottery]); // Use the whole lottery object as it's from a hook and its stable-ness depends on the hook implementation. 
-  // Actually, the lint error suggested including 'lottery'. 
-  // If lottery is stable, then it's fine. If not, we should destructure.
-  // Looking at useLottery, it returns an object.
-
+  const lottery = useLottery({
+    enableRemote: !showControls && !showAdmin && !showQrModal
+  });
 
   const lastWinner = lottery.winners[lottery.winners.length - 1];
 
