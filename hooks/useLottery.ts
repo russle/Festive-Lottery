@@ -395,18 +395,24 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
                 return;
             }
 
-            // 實體簡報器常用按鍵映射: 
-            // - 下一頁: PageDown, ArrowRight, ArrowDown (部分型號), Enter, Space
-            // - 上一頁: PageUp, ArrowLeft, ArrowUp (部分型號)
-            const isNextAction = ['PageDown', 'ArrowRight', 'ArrowDown', 'Enter', ' '].includes(e.key);
+            // [N26 專屬優化] 諾為 N26 常見模式為送出 Tab/Enter 或 ArrowUp/Down
+            // 我們將這些按鍵統一視為「下一步執行」
+            const isNextAction = [
+                'PageDown', 'PageUp',
+                'ArrowDown', 'ArrowUp',
+                'ArrowRight', 'ArrowLeft',
+                'Enter', ' ', 'Tab'
+            ].includes(e.key);
 
             // 排除簡報器可能送出的標點符號 (如 B 鍵, 句點 ., 或 Escape)
             const isDebugKey = ['b', '.', 'Escape', 'F5'].includes(e.key);
 
             if (isNextAction || isDebugKey) {
-                if (isNextAction) e.preventDefault();
+                // 強制攔截所有可能導致焦點跳動或捲動的預設行為
+                e.preventDefault();
+                console.log(`[Remote Control] Key: "${e.key}" | Phase: ${phase}`);
 
-                if (isDebugKey) return; // 僅記錄不動作
+                if (isDebugKey) return;
 
                 switch (phase) {
                     case 'standby':
@@ -422,7 +428,6 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
                         nextPrize();
                         break;
                     case 'countdown':
-                        // 倒數中不動作，避免誤觸
                         break;
                 }
             }
