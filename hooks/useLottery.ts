@@ -395,12 +395,20 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
                 return;
             }
 
-            // 實體簡報器常用按鍵映射: PageDown, ArrowRight, Enter, Space
-            const isNextAction = ['PageDown', 'ArrowRight', 'Enter', ' '].includes(e.key);
+            // 實體簡報器常用按鍵映射: 
+            // - 下一頁: PageDown, ArrowRight, ArrowDown (部分型號), Enter, Space
+            // - 上一頁: PageUp, ArrowLeft, ArrowUp (部分型號)
+            // 由於抽獎流程主要為「循序前進」，我們將多數按鍵映射至「下一動」
+            const isNextAction = ['PageDown', 'PageUp', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Enter', ' '].includes(e.key);
 
-            if (isNextAction) {
+            // 排除簡報器可能送出的標點符號 (如 B 鍵或句點 .)
+            const isDebugKey = e.key === 'b' || e.key === '.';
+
+            if (isNextAction || isDebugKey) {
                 e.preventDefault();
-                console.log(`[Remote] Triggered by ${e.key} during phase: ${phase}`);
+                console.log(`[Remote] Key: "${e.key}" | Phase: ${phase} | Target: ${(e.target as HTMLElement).tagName}`);
+
+                if (isDebugKey) return; // 僅記錄不動作
 
                 switch (phase) {
                     case 'standby':
