@@ -395,18 +395,19 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
                 return;
             }
 
+            // 全域捕捉所有按鍵資訊，幫助排查特定硬體 (如諾為 N26)
+            console.log(`[Remote Debug] Detected Key: "${e.key}" | Code: "${e.code}" | Phase: ${phase}`);
+
             // 實體簡報器常用按鍵映射: 
             // - 下一頁: PageDown, ArrowRight, ArrowDown (部分型號), Enter, Space
             // - 上一頁: PageUp, ArrowLeft, ArrowUp (部分型號)
-            // 由於抽獎流程主要為「循序前進」，我們將多數按鍵映射至「下一動」
-            const isNextAction = ['PageDown', 'PageUp', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Enter', ' '].includes(e.key);
+            const isNextAction = ['PageDown', 'ArrowRight', 'ArrowDown', 'Enter', ' '].includes(e.key);
 
-            // 排除簡報器可能送出的標點符號 (如 B 鍵或句點 .)
-            const isDebugKey = e.key === 'b' || e.key === '.';
+            // 排除簡報器可能送出的標點符號 (如 B 鍵, 句點 ., 或 Escape)
+            const isDebugKey = ['b', '.', 'Escape', 'F5'].includes(e.key);
 
             if (isNextAction || isDebugKey) {
-                e.preventDefault();
-                console.log(`[Remote] Key: "${e.key}" | Phase: ${phase} | Target: ${(e.target as HTMLElement).tagName}`);
+                if (isNextAction) e.preventDefault();
 
                 if (isDebugKey) return; // 僅記錄不動作
 
@@ -432,7 +433,7 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [phase, startCountdown, stopRolling, nextPrize]);
+    }, [enableRemote, phase, startCountdown, stopRolling, nextPrize]);
 
     // ========================================================================
     // AI Generation Wrappers (使用組合 Hook)
