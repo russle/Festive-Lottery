@@ -395,9 +395,6 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
                 return;
             }
 
-            // 全域捕捉所有按鍵資訊，幫助排查特定硬體 (如諾為 N26)
-            console.log(`[Remote Debug] Detected Key: "${e.key}" | Code: "${e.code}" | Phase: ${phase}`);
-
             // 實體簡報器常用按鍵映射: 
             // - 下一頁: PageDown, ArrowRight, ArrowDown (部分型號), Enter, Space
             // - 上一頁: PageUp, ArrowLeft, ArrowUp (部分型號)
