@@ -36,7 +36,6 @@ export default function FestiveLottery() {
       <OrnamentCorner position="bottom-right" />
 
       {/* 活動標題與自定義 Logo */}
-      {/* 活動標題與自定義 Logo */}
       <div className="absolute top-8 left-8 flex items-center gap-4 md:gap-6 z-10 pointer-events-none">
         {lottery.customLogo && (
           <div className="relative group">
@@ -57,6 +56,24 @@ export default function FestiveLottery() {
           </p>
         </div>
       </div>
+
+      {/* 右上角：目前抽獎獎項提示 */}
+      {lottery.currentPrize && (
+        <div className="absolute top-8 right-8 z-10 pointer-events-none animate-slide-in-right">
+          <div className="bg-gradient-to-r from-red-900/40 to-amber-900/40 border border-amber-500/30 backdrop-blur-md rounded-full pl-6 pr-2 py-2 flex items-center gap-4 shadow-lg">
+            <div className="flex flex-col items-end mr-2">
+              <span className="text-[10px] text-amber-500/60 uppercase tracking-widest leading-none mb-1">Current Prize</span>
+              <span className="text-amber-100 font-medium tracking-wider text-sm">目前抽獎獎項</span>
+            </div>
+            <div className="bg-amber-500 text-red-950 px-6 py-2 rounded-full font-bold shadow-inner flex items-center gap-3">
+              <span className="text-lg">{lottery.currentPrize.name}</span>
+              <span className="bg-red-900/20 px-2 py-0.5 rounded text-sm font-mono">
+                ({lottery.winners.filter(w => w.prizeId === lottery.currentPrize!.id).length}/{lottery.currentPrize.count})
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 主抽獎區域 */}
       <main className="relative z-10 w-full h-full flex flex-col items-center justify-center px-4 md:px-10">
