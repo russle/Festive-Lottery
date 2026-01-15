@@ -122,7 +122,7 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
     // 切換獎項時清空 AI 評語
     useEffect(() => {
         ai.clearCommentary();
-    }, [prizeManager.currentPrizeIndex, ai]);
+    }, [prizeManager.currentPrizeIndex, ai.clearCommentary]);
 
     // ========================================================================
     // Actions Wrapper
