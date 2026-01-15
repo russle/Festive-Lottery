@@ -44,22 +44,20 @@ export default function FestiveLottery() {
       <OrnamentCorner position="bottom-right" />
 
       {/* Header Area */}
-      <header className="absolute top-0 left-0 w-full p-6 flex justify-between items-start z-30 pointer-events-none">
+      <header className="absolute top-0 left-0 w-full p-4 md:p-8 flex justify-between items-start z-30 pointer-events-none">
         {/* Left: Logo & Title */}
         <div className="flex items-center gap-4">
           {lottery.customLogo ? (
-            <div className="relative w-16 h-16 md:w-24 md:h-24 group">
-              <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-md animate-pulse" />
-              <img
-                src={lottery.customLogo}
-                alt="Logo"
-                className="relative w-full h-full rounded-full object-cover border-2 border-amber-300/50 shadow-[0_0_15px_rgba(251,191,36,0.3)] animate-fade-in"
-              />
-              <div className="absolute -inset-1 border border-amber-500/30 rounded-full animate-spin-slow opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
+            <img
+              src={lottery.customLogo}
+              alt="Logo"
+              className="w-16 h-16 md:w-24 md:h-24 object-contain drop-shadow-lg animate-fade-in"
+            />
           ) : (
-            <div className="relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-gradient-to-br from-red-900 to-amber-900 rounded-full border-2 border-amber-500/50 shadow-lg">
-              <span className="text-amber-500 font-bold text-xs">LOGO</span>
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-amber-500 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-pulse">
+              <svg className="w-8 h-8 text-red-900" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+              </svg>
             </div>
           )}
 
@@ -67,7 +65,7 @@ export default function FestiveLottery() {
             <h1 className="text-xl md:text-3xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-100 drop-shadow-md whitespace-nowrap">
               {lottery.eventTitle}
             </h1>
-            <span className="text-sm md:text-lg text-amber-400/80 tracking-[0.3em] font-light hidden md:block mt-1">
+            <span className="text-[10px] md:text-sm text-amber-400/80 tracking-[0.5em] font-light hidden md:block">
               {lottery.eventSubtitle}
             </span>
           </div>
