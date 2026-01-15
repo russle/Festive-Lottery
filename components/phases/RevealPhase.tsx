@@ -1,27 +1,13 @@
 // 單獎揭曉階段元件
 import React from 'react';
 import { PartyPopper, Gem, SkipForward, ChevronLeft } from 'lucide-react';
-import type { Winner } from '../../types';
+import { useLotteryContext } from '../../contexts/LotteryContext';
 
-interface RevealPhaseProps {
-    winner: Winner | undefined;
-    aiCommentary: string;
-    isAiLoading: boolean;
-    onGenerateWinnerComment: () => void;
-    onNext: () => void;
-    onPrevious: () => void;
-    canGoPrevious: boolean;
-}
+export const RevealPhase: React.FC = () => {
+    const lottery = useLotteryContext();
+    const { winners, aiCommentary, isAiLoading, currentPrizeIndex } = lottery;
+    const winner = winners[winners.length - 1];
 
-export const RevealPhase: React.FC<RevealPhaseProps> = ({
-    winner,
-    aiCommentary,
-    isAiLoading,
-    onGenerateWinnerComment,
-    onNext,
-    onPrevious,
-    canGoPrevious,
-}) => {
     if (!winner) return null;
 
     return (
@@ -47,7 +33,7 @@ export const RevealPhase: React.FC<RevealPhaseProps> = ({
             <div className="mt-12 min-h-[120px] flex flex-col items-center justify-center">
                 {!aiCommentary && !isAiLoading && (
                     <button
-                        onClick={onGenerateWinnerComment}
+                        onClick={lottery.generateWinnerAI}
                         className="text-amber-200/80 hover:text-white border border-amber-500/30 px-6 py-2 rounded-full text-sm hover:bg-amber-900/30 transition-all flex items-center gap-2"
                     >
                         <Gem size={14} />
@@ -65,16 +51,16 @@ export const RevealPhase: React.FC<RevealPhaseProps> = ({
             </div>
 
             <div className="mt-10 flex gap-6 justify-center items-center">
-                {canGoPrevious && (
+                {currentPrizeIndex > 0 && (
                     <button
-                        onClick={onPrevious}
+                        onClick={lottery.previousPrize}
                         className="text-amber-400/60 hover:text-amber-300 flex items-center gap-2 transition-colors font-medium tracking-wide"
                     >
                         <ChevronLeft size={20} /> 上一獎項
                     </button>
                 )}
                 <button
-                    onClick={onNext}
+                    onClick={lottery.nextPrize}
                     className="text-amber-400/60 hover:text-amber-300 flex items-center gap-2 transition-colors font-medium tracking-wide"
                 >
                     繼續下一個獎項 <SkipForward size={20} />

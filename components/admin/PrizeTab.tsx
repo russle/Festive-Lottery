@@ -1,28 +1,18 @@
 // 獎品清單管理 Tab
 import React from 'react';
 import { Download, Trash2, Check, Plus } from 'lucide-react';
-import type { Prize, Winner, PrizeType } from '../../types';
+import type { Prize, PrizeType } from '../../types';
 import { FileUploader } from '../FileUploader';
 import { DataPreview } from '../DataPreview';
+import { useLotteryContext } from '../../contexts/LotteryContext';
 import {
     parsePrizes,
     validatePrizes,
     generateSamplePrizesExcel,
 } from '../../utils/dataParser';
 
-interface PrizeTabProps {
-    currentPrizes: Prize[];
-    winners: Winner[];
-    onUpdatePrizes: (prizes: Prize[]) => void;
-    onResetPrizes: () => void;
-}
-
-export const PrizeTab: React.FC<PrizeTabProps> = ({
-    currentPrizes,
-    winners,
-    onUpdatePrizes,
-    onResetPrizes,
-}) => {
+export const PrizeTab: React.FC = () => {
+    const lottery = useLotteryContext();
     const [pendingPrizes, setPendingPrizes] = React.useState<Prize[] | null>(null);
     const [errors, setErrors] = React.useState<string[]>([]);
 
@@ -51,7 +41,7 @@ export const PrizeTab: React.FC<PrizeTabProps> = ({
 
     const handleImportPrizes = () => {
         if (pendingPrizes) {
-            onUpdatePrizes(pendingPrizes);
+            lottery.updatePrizes(pendingPrizes);
             setPendingPrizes(null);
             setErrors([]);
         }
@@ -66,7 +56,7 @@ export const PrizeTab: React.FC<PrizeTabProps> = ({
         const countPerRound = Math.min(newPrizeCountPerRound, 12, count);
 
         const newPrize: Prize = {
-            id: currentPrizes.length > 0 ? Math.max(...currentPrizes.map(p => p.id)) + 1 : 1,
+            id: lottery.prizes.length > 0 ? Math.max(...lottery.prizes.map(p => p.id)) + 1 : 1,
             name: newPrizeName.trim(),
             icon: newPrizeIcon || '🎁',
             count: count,
@@ -74,7 +64,7 @@ export const PrizeTab: React.FC<PrizeTabProps> = ({
             countPerRound: countPerRound,
         };
 
-        onUpdatePrizes([...currentPrizes, newPrize]);
+        lottery.updatePrizes([...lottery.prizes, newPrize]);
 
         // Reset form
         setNewPrizeName('');
@@ -201,7 +191,7 @@ export const PrizeTab: React.FC<PrizeTabProps> = ({
             )}
 
             {/* Current Data */}
-            {!pendingPrizes && currentPrizes.length > 0 && (
+            {!pendingPrizes && lottery.prizes.length > 0 && (
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
                         <h3 className="text-amber-300 font-medium">目前的獎品名單</h3>
@@ -209,7 +199,7 @@ export const PrizeTab: React.FC<PrizeTabProps> = ({
                             onClick={(e) => {
                                 e.stopPropagation();
                                 if (window.confirm('確定要清除所有獎品資料嗎？這也會清除中獎紀錄。')) {
-                                    onResetPrizes();
+                                    lottery.resetPrizes();
                                 }
                             }}
                             className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg transition-colors text-sm"
@@ -218,7 +208,7 @@ export const PrizeTab: React.FC<PrizeTabProps> = ({
                             清除獎項
                         </button>
                     </div>
-                    <DataPreview type="prizes" prizes={currentPrizes} winners={winners} />
+                    <DataPreview type="prizes" prizes={lottery.prizes} winners={lottery.winners} />
                 </div>
             )}
         </>

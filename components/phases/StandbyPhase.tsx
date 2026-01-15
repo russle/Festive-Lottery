@@ -1,24 +1,15 @@
 // 待機階段元件
 import React from 'react';
 import { Play, Sparkles, Wand2 } from 'lucide-react';
-import type { Prize } from '../../types';
 import { GoldenText } from '../GoldenText';
+import { useLotteryContext } from '../../contexts/LotteryContext';
 
-interface StandbyPhaseProps {
-    prize: Prize;
-    aiCommentary: string;
-    isAiLoading: boolean;
-    onStart: () => void;
-    onGenerateAI: () => void;
-}
+export const StandbyPhase: React.FC = () => {
+    const lottery = useLotteryContext();
+    const { currentPrize, aiCommentary, isAiLoading } = lottery;
 
-export const StandbyPhase: React.FC<StandbyPhaseProps> = ({
-    prize,
-    aiCommentary,
-    isAiLoading,
-    onStart,
-    onGenerateAI,
-}) => {
+    if (!currentPrize) return null;
+
     return (
         <div className="text-center w-full max-w-5xl animate-fade-in-up flex flex-col items-center">
             {/* 獎項圖示 */}
@@ -26,19 +17,19 @@ export const StandbyPhase: React.FC<StandbyPhaseProps> = ({
                 <div className="absolute inset-0 bg-red-500/20 blur-[80px] animate-pulse" />
                 <div className="absolute inset-0 bg-amber-500/10 blur-[40px]" />
                 <div className="relative text-[100px] md:text-[140px] transform hover:scale-110 transition-transform duration-700 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
-                    {prize.icon}
+                    {currentPrize.icon}
                 </div>
             </div>
 
             {/* 獎項名稱 */}
             <div className="space-y-4 md:space-y-6 mb-6 md:mb-8 flex flex-col items-center">
-                <GoldenText text={prize.name} size="text-5xl md:text-7xl lg:text-8xl" />
+                <GoldenText text={currentPrize.name} size="text-5xl md:text-7xl lg:text-8xl" />
 
-                {prize.type === 'batch' && (
+                {currentPrize.type === 'batch' && (
                     <div className="flex items-center justify-center gap-4 md:gap-6 mt-4 md:mt-6">
                         <div className="h-[2px] w-8 md:w-16 bg-gradient-to-r from-transparent to-amber-500" />
                         <p className="text-lg md:text-2xl text-amber-200 font-medium tracking-[0.2em] bg-red-950/30 px-4 py-1 rounded">
-                            即將抽出 {prize.count} 位幸運兒
+                            即將抽出 {currentPrize.count} 位幸運兒
                         </p>
                         <div className="h-[2px] w-8 md:w-16 bg-gradient-to-l from-transparent to-amber-500" />
                     </div>
@@ -46,7 +37,7 @@ export const StandbyPhase: React.FC<StandbyPhaseProps> = ({
 
                 {/* 開始按鈕 */}
                 <button
-                    onClick={onStart}
+                    onClick={lottery.startCountdown}
                     className="group relative px-12 py-4 mt-6 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-bold text-xl rounded-full shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_40px_rgba(220,38,38,0.6)] transition-all transform hover:-translate-y-1 z-50"
                 >
                     <div className="flex items-center gap-3">
@@ -62,7 +53,7 @@ export const StandbyPhase: React.FC<StandbyPhaseProps> = ({
             <div className="min-h-[80px] md:min-h-[100px] max-w-2xl mx-auto mb-4 md:mb-8 w-full">
                 {!aiCommentary && !isAiLoading && (
                     <button
-                        onClick={onGenerateAI}
+                        onClick={lottery.generatePrizeAI}
                         className="group relative px-6 py-2 bg-red-900/30 hover:bg-red-900/50 rounded-full border border-amber-500/30 hover:border-amber-400 transition-all"
                     >
                         <span className="relative flex items-center gap-2 text-amber-300 text-sm tracking-wider">

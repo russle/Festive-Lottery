@@ -1,46 +1,12 @@
 // 系統設定 Tab (AI, Cloud, Logo, Danger Zone)
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, ExternalLink, Cloud, RefreshCw, QrCode, Download, Trash2, Upload, Timer } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
-import type { Employee, Prize, Winner, AIConfig } from '../../types';
+import { Settings as SettingsIcon, ExternalLink, Cloud, RefreshCw, Trash2, Upload, Timer } from 'lucide-react';
 import { cloudLotteryAPI } from '../../api/lottery';
 import { loadApiUrl, saveApiUrl, loadHostId, saveHostId } from '../../utils/storage';
+import { useLotteryContext } from '../../contexts/LotteryContext';
 
-interface SettingsTabProps {
-    aiConfig: AIConfig;
-    onUpdateAIConfig: (config: AIConfig) => void;
-    currentEmployees: Employee[];
-    currentPrizes: Prize[];
-    winners: Winner[];
-    customLogo?: string | null;
-    onUpdateCustomLogo?: (logo: string) => void;
-    onResetCustomLogo?: () => void;
-    eventTitle?: string;
-    onUpdateEventTitle?: (title: string) => void;
-    eventSubtitle?: string;
-    onUpdateEventSubtitle?: (subtitle: string) => void;
-    countdownDuration: number;
-    onUpdateCountdownDuration: (seconds: number) => void;
-    onResetAll: () => void;
-}
-
-export const SettingsTab: React.FC<SettingsTabProps> = ({
-    aiConfig,
-    onUpdateAIConfig,
-    currentEmployees,
-    currentPrizes,
-    winners,
-    customLogo,
-    onUpdateCustomLogo,
-    onResetCustomLogo,
-    eventTitle,
-    onUpdateEventTitle,
-    eventSubtitle,
-    onUpdateEventSubtitle,
-    countdownDuration,
-    onUpdateCountdownDuration,
-    onResetAll,
-}) => {
+export const SettingsTab: React.FC = () => {
+    const lottery = useLotteryContext();
     const [apiUrl, setApiUrlState] = useState(loadApiUrl() || '');
     const [hostId, setHostIdState] = useState(loadHostId());
     const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
@@ -48,17 +14,14 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
 
     const handleSaveSettings = () => {
         let urlToSave = apiUrl.trim();
-        // Auto-prepend https:// if no protocol
         if (urlToSave && !urlToSave.startsWith('http://') && !urlToSave.startsWith('https://')) {
             urlToSave = 'https://' + urlToSave;
             setApiUrlState(urlToSave);
         }
-        // Remove trailing slash
         urlToSave = urlToSave.replace(/\/+$/, '');
         setApiUrlState(urlToSave);
         saveApiUrl(urlToSave);
 
-        // Save Host ID
         const trimmedHostId = hostId.trim() || 'default';
         setHostIdState(trimmedHostId);
         saveHostId(trimmedHostId);
@@ -70,26 +33,23 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         setSyncStatus('syncing');
         setSyncMessage('');
         try {
-            // Sync employees
-            const empRes = await cloudLotteryAPI.syncEmployees(currentEmployees);
+            const empRes = await cloudLotteryAPI.syncEmployees(lottery.employees);
             if (!empRes.success) {
                 throw new Error(`同步員工資料失敗: ${empRes.error || '未知錯誤'}`);
             }
 
-            // Sync prizes
-            const prizeRes = await cloudLotteryAPI.syncPrizes(currentPrizes);
+            const prizeRes = await cloudLotteryAPI.syncPrizes(lottery.prizes);
             if (!prizeRes.success) {
                 throw new Error(`同步獎品資料失敗: ${prizeRes.error || '未知錯誤'}`);
             }
 
-            // Sync winners
             await cloudLotteryAPI.resetWinners();
-            for (const winner of winners) {
+            for (const winner of lottery.winners) {
                 await cloudLotteryAPI.saveWinner(winner);
             }
 
             setSyncStatus('success');
-            setSyncMessage(`同步完成！員工 ${currentEmployees.length} 筆、獎品 ${currentPrizes.length} 筆、中獎 ${winners.length} 筆`);
+            setSyncMessage(`同步完成！員工 ${lottery.employees.length} 筆、獎品 ${lottery.prizes.length} 筆、中獎 ${lottery.winners.length} 筆`);
         } catch (error: unknown) {
             setSyncStatus('error');
             const message = error instanceof Error ? error.message : '同步失敗';
@@ -98,404 +58,261 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         }
     };
 
-    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        if (file.size > 2 * 1024 * 1024) {
-            alert('檔案大小不能超過 2MB');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const result = event.target?.result;
-            if (typeof result !== 'string') return;
-
-            // Resize if needed
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const maxSize = 400;
-                let width = img.width;
-                let height = img.height;
-
-                if (width > maxSize || height > maxSize) {
-                    if (width > height) {
-                        height = (height / width) * maxSize;
-                        width = maxSize;
-                    } else {
-                        width = (width / height) * maxSize;
-                        height = maxSize;
-                    }
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx?.drawImage(img, 0, 0, width, height);
-
-                const resizedDataUrl = canvas.toDataURL('image/png');
-                onUpdateCustomLogo?.(resizedDataUrl);
-            };
-            img.src = result;
-        };
-        reader.readAsDataURL(file);
-    };
-
     return (
-        <div className="space-y-8">
-            {/* AI Settings */}
-            <section className="space-y-4">
-                <div className="flex items-center gap-2 text-amber-300 font-bold border-b border-amber-500/20 pb-2">
-                    <SettingsIcon size={20} />
-                    <h3>AI 吉祥話設定 (Google Gemini)</h3>
+        <div className="space-y-8 pb-10">
+            {/* 雲端同步設定 */}
+            <section className="bg-black/30 border border-amber-500/20 rounded-2xl p-6 space-y-6">
+                <div className="flex items-center gap-3 border-b border-amber-500/10 pb-4">
+                    <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center">
+                        <Cloud className="text-amber-400" size={20} />
+                    </div>
+                    <div>
+                        <h3 className="text-amber-300 font-bold text-lg">雲端同步伺服器</h3>
+                        <p className="text-amber-500/40 text-xs">設定 Cloudflare Workers 的後端網址以同步中獎資料</p>
+                    </div>
                 </div>
-                <p className="text-sm text-amber-200/60 leading-relaxed">
-                    啟用後可在抽獎前生成獎項介紹，抽中後生成個人祝賀詞。需提供有效的 Google Gemini API Key。
-                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm text-amber-200/70 block px-1">Worker API 網址</label>
+                        <input
+                            type="text"
+                            placeholder="https://lottery-worker.yourname.workers.dev"
+                            value={apiUrl}
+                            onChange={(e) => setApiUrlState(e.target.value)}
+                            className="w-full bg-[#1a0510] border border-amber-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono text-sm"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm text-amber-200/70 block px-1">Host ID (活動識別碼)</label>
+                        <input
+                            type="text"
+                            placeholder="2026-event-01"
+                            value={hostId}
+                            onChange={(e) => setHostIdState(e.target.value)}
+                            className="w-full bg-[#1a0510] border border-amber-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono text-sm"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                    <button
+                        onClick={handleSaveSettings}
+                        className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-amber-500/20 active:scale-95"
+                    >
+                        儲存伺服器設定
+                    </button>
+                    <button
+                        onClick={handleManualSync}
+                        disabled={syncStatus === 'syncing' || !apiUrl}
+                        className="flex-1 border border-amber-500/40 hover:bg-amber-500/10 text-amber-400 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <RefreshCw size={18} className={syncStatus === 'syncing' ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
+                        立即手動上傳所有資料
+                    </button>
+                </div>
+
+                {syncMessage && (
+                    <div className={`p-4 rounded-xl border ${syncStatus === 'success' ? 'bg-green-900/20 border-green-500/50 text-green-300' : 'bg-red-900/20 border-red-500/50 text-red-300'
+                        } text-sm`}>
+                        {syncMessage}
+                    </div>
+                )}
+            </section>
+
+            {/* AI 設定部分 */}
+            <section className="bg-black/30 border border-amber-500/20 rounded-2xl p-6 space-y-6">
+                <div className="flex items-center gap-3 border-b border-amber-500/10 pb-4">
+                    <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                        <ExternalLink className="text-purple-400" size={20} />
+                    </div>
+                    <div>
+                        <h3 className="text-amber-300 font-bold text-lg">AI 評語設定</h3>
+                        <p className="text-amber-500/40 text-xs">設定 Gemini 或 OpenAI API 以產生趣味的中獎評語</p>
+                    </div>
+                </div>
+
                 <div className="space-y-4">
-                    <div className="flex bg-black/40 p-1 rounded-lg border border-amber-500/20">
+                    <div className="flex gap-4 p-1 bg-[#1a0510] rounded-xl border border-amber-500/10">
                         <button
-                            onClick={() => onUpdateAIConfig({ ...aiConfig, provider: 'gemini' })}
-                            className={`flex-1 py-1 text-xs rounded-md transition-all ${aiConfig.provider === 'gemini'
-                                ? 'bg-amber-500/20 text-amber-300 shadow-sm'
-                                : 'text-amber-500/40 hover:text-amber-400'
+                            onClick={() => lottery.updateAIConfig({ ...lottery.aiConfig, provider: 'gemini' })}
+                            className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${lottery.aiConfig.provider === 'gemini' ? 'bg-amber-500 text-red-900 shadow-md' : 'text-amber-500/50 hover:text-amber-400'
                                 }`}
                         >
                             Google Gemini
                         </button>
                         <button
-                            onClick={() => onUpdateAIConfig({ ...aiConfig, provider: 'openai' })}
-                            className={`flex-1 py-1 text-xs rounded-md transition-all ${aiConfig.provider === 'openai'
-                                ? 'bg-amber-500/20 text-amber-300 shadow-sm'
-                                : 'text-amber-500/40 hover:text-amber-400'
+                            onClick={() => lottery.updateAIConfig({ ...lottery.aiConfig, provider: 'openai' })}
+                            className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${lottery.aiConfig.provider === 'openai' ? 'bg-amber-500 text-red-900 shadow-md' : 'text-amber-500/50 hover:text-amber-400'
                                 }`}
                         >
                             OpenAI
                         </button>
                     </div>
 
-                    {aiConfig.provider === 'gemini' ? (
-                        <div className="space-y-2">
-                            <label className="text-xs text-amber-400/80 font-medium">Gemini API Key</label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="password"
-                                    value={aiConfig.geminiKey}
-                                    onChange={(e) => onUpdateAIConfig({ ...aiConfig, geminiKey: e.target.value })}
-                                    placeholder="在此輸入 Gemini API Key"
-                                    className="flex-1 bg-black/40 border border-amber-500/30 rounded-lg px-4 py-2 text-amber-100 placeholder:text-amber-900/40 focus:outline-none focus:border-amber-400 transition-colors"
-                                />
-                                <a
-                                    href="https://aistudio.google.com/app/apikey"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1 text-xs text-amber-400/60 hover:text-amber-300 transition-colors whitespace-nowrap"
-                                >
-                                    <ExternalLink size={14} />
-                                    獲取
-                                </a>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-2">
-                            <label className="text-xs text-amber-400/80 font-medium">OpenAI API Key</label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="password"
-                                    value={aiConfig.openaiKey}
-                                    onChange={(e) => onUpdateAIConfig({ ...aiConfig, openaiKey: e.target.value })}
-                                    placeholder="在此輸入 OpenAI API Key (sk-...)"
-                                    className="flex-1 bg-black/40 border border-amber-500/30 rounded-lg px-4 py-2 text-amber-100 placeholder:text-amber-900/40 focus:outline-none focus:border-amber-400 transition-colors"
-                                />
-                                <a
-                                    href="https://platform.openai.com/api-keys"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1 text-xs text-amber-400/60 hover:text-amber-300 transition-colors whitespace-nowrap"
-                                >
-                                    <ExternalLink size={14} />
-                                    獲取
-                                </a>
-                            </div>
-                        </div>
-                    )}
-                    <p className="text-[10px] text-amber-600">金鑰僅儲存於本地瀏覽器。OpenAI 模型預設使用 gpt-4o-mini。</p>
-                </div>
-            </section>
-
-            {/* Cloud Sync Settings */}
-            <section className="space-y-4">
-                <div className="flex items-center gap-2 text-amber-400 font-bold">
-                    <Cloud size={20} />
-                    <h3>雲端同步設定</h3>
-                </div>
-                <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl space-y-4">
                     <div className="space-y-2">
-                        <label className="text-xs text-amber-300/70 block">Cloud API Endpoint URL</label>
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={apiUrl}
-                                onChange={(e) => setApiUrlState(e.target.value)}
-                                placeholder="https://your-worker.workers.dev"
-                                className="flex-1 bg-black/40 border border-amber-500/30 rounded px-3 py-2 text-sm text-amber-100 focus:outline-none focus:border-amber-500"
-                            />
-                            <button
-                                onClick={handleSaveSettings}
-                                className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded text-xs transition-colors"
-                            >
-                                儲存
-                            </button>
-                        </div>
-                        <p className="text-[10px] text-amber-300/40">
-                            填寫您自行部署的 Cloudflare Worker 網址。若留空則僅使用本地模式（無法查獎）。
-                        </p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-xs text-amber-300/70 block">主機識別碼 (Host ID)</label>
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={hostId}
-                                onChange={(e) => setHostIdState(e.target.value)}
-                                placeholder="例如: PC-1 或 Room-A"
-                                className="flex-1 bg-black/40 border border-amber-500/30 rounded px-3 py-2 text-sm text-amber-100 focus:outline-none focus:border-amber-500"
-                            />
-                            <button
-                                onClick={handleSaveSettings}
-                                className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded text-xs transition-colors"
-                            >
-                                儲存
-                            </button>
-                        </div>
-                        <p className="text-[10px] text-amber-300/40">
-                            若多台主機共用同一個 Worker，請設定不同的識別碼以隔離資料。
-                        </p>
-                    </div>
-
-                    {apiUrl && (
-                        <div className="pt-2 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-amber-300/70 font-medium">數據手動同步</span>
-                                <button
-                                    onClick={handleManualSync}
-                                    disabled={syncStatus === 'syncing'}
-                                    className="flex items-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 px-4 py-2 rounded-lg transition-colors text-xs disabled:opacity-50"
-                                >
-                                    <RefreshCw size={14} className={syncStatus === 'syncing' ? 'animate-spin' : ''} />
-                                    {syncStatus === 'syncing' ? '同步中...' : '同步資料到雲端'}
-                                </button>
-                            </div>
-                            {syncMessage && (
-                                <p className={`text-[10px] ${syncStatus === 'error' ? 'text-red-400' : 'text-green-400'}`}>
-                                    {syncMessage}
-                                </p>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </section>
-
-            {/* QR Code Section */}
-            {apiUrl && (
-                <section className="space-y-4">
-                    <div className="flex items-center gap-2 text-purple-400 font-bold">
-                        <QrCode size={20} />
-                        <h3>掃碼查獎二維碼</h3>
-                    </div>
-                    <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-xl">
-                        <div className="flex flex-col md:flex-row items-center gap-6">
-                            <div className="bg-white p-2 rounded-lg shadow-xl shrink-0">
-                                <QRCodeSVG
-                                    value={`${window.location.origin}/check?api=${encodeURIComponent(apiUrl)}&host=${encodeURIComponent(hostId)}`}
-                                    size={160}
-                                    level="H"
-                                    includeMargin={true}
-                                />
-                            </div>
-                            <div className="flex-1 space-y-3">
-                                <p className="text-xs text-purple-200/70">
-                                    將此 QR Code 公佈給參加者。他們可以掃描查詢自己的中獎狀態。
-                                    查獎頁面網址為：
-                                </p>
-                                <div className="p-2 bg-black/40 rounded border border-purple-500/30">
-                                    <p className="text-xs text-purple-300 break-all">
-                                        {window.location.origin}/check?api={encodeURIComponent(apiUrl)}&host={encodeURIComponent(hostId)}
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        const canvas = document.createElement('canvas');
-                                        const svg = document.querySelector('.qr-code-section svg') as SVGElement;
-                                        if (!svg) return;
-
-                                        const svgData = new XMLSerializer().serializeToString(svg);
-                                        const img = new Image();
-                                        img.onload = () => {
-                                            canvas.width = 400;
-                                            canvas.height = 400;
-                                            const ctx = canvas.getContext('2d');
-                                            if (ctx) {
-                                                ctx.fillStyle = 'white';
-                                                ctx.fillRect(0, 0, 400, 400);
-                                                ctx.drawImage(img, 0, 0, 400, 400);
-                                                const link = document.createElement('a');
-                                                link.download = 'lottery-check-qr.png';
-                                                link.href = canvas.toDataURL('image/png');
-                                                link.click();
-                                            }
-                                        };
-                                        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
-                                    }}
-                                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white text-xs px-4 py-2 rounded transition-colors"
-                                >
-                                    <Download size={14} />
-                                    下載連結圖檔
-                                </button>
-                            </div>
-                        </div>
-                        <div className="qr-code-section hidden">
-                            <QRCodeSVG
-                                value={`${window.location.origin}/check?api=${encodeURIComponent(apiUrl)}&host=${encodeURIComponent(hostId)}`}
-                                size={400}
-                                level="H"
-                            />
-                        </div>
-                    </div>
-                </section>
-            )}
-
-            {/* Logo & Branding Settings */}
-            <section className="space-y-4">
-                <div className="flex items-center gap-2 text-amber-300 font-bold border-b border-amber-500/20 pb-2">
-                    <span className="text-xl">🖼️</span>
-                    <h3>活動識別設定</h3>
-                </div>
-                <p className="text-sm text-amber-200/60 leading-relaxed">
-                    自訂左上角的活動 Logo，支援透明背景圖片。
-                </p>
-
-                <div className="bg-black/30 border border-amber-500/20 rounded-2xl p-6 flex items-start gap-6">
-                    {/* Logo Preview */}
-                    <div className="shrink-0">
-                        <div className="w-24 h-24 bg-white/5 rounded-lg border border-white/10 flex items-center justify-center overflow-hidden relative group">
-                            <div className="absolute inset-0 opacity-20"
-                                style={{ backgroundImage: 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px' }}></div>
-
-                            {customLogo ? (
-                                <img src={customLogo} alt="Logo Preview" className="w-full h-full object-contain relative z-10 p-2" />
+                        <label className="text-sm text-amber-200/70 block px-1">
+                            {lottery.aiConfig.provider === 'gemini' ? 'Google AI Studio API Key' : 'OpenAI API Key'}
+                        </label>
+                        <input
+                            type="password"
+                            placeholder={lottery.aiConfig.provider === 'gemini' ? '輸入 Gemini API Key' : '輸入 OpenAI API Key'}
+                            value={lottery.aiConfig.provider === 'gemini' ? lottery.aiConfig.geminiKey : lottery.aiConfig.openaiKey}
+                            onChange={(e) => {
+                                const newConfig = { ...lottery.aiConfig };
+                                if (lottery.aiConfig.provider === 'gemini') newConfig.geminiKey = e.target.value;
+                                else newConfig.openaiKey = e.target.value;
+                                lottery.updateAIConfig(newConfig);
+                            }}
+                            className="w-full bg-[#1a0510] border border-amber-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 font-mono text-sm"
+                        />
+                        <p className="text-amber-500/30 text-[10px] px-1">
+                            {lottery.aiConfig.provider === 'gemini' ? (
+                                <span>API Key 僅儲存於本地瀏覽器。可於 <a href="https://aistudio.google.com/app/apikey" target="_blank" className="underline hover:text-amber-400">Google AI Studio</a> 免費取得。</span>
                             ) : (
-                                <span className="text-amber-500/30 text-xs relative z-10">預設 Logo</span>
+                                <span>API Key 僅儲存於本地瀏覽器。</span>
                             )}
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            {/* 視覺自定義設定 */}
+            <section className="bg-black/30 border border-amber-500/20 rounded-2xl p-6 space-y-6">
+                <div className="flex items-center gap-3 border-b border-amber-500/10 pb-4">
+                    <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center">
+                        <Upload className="text-amber-400" size={20} />
+                    </div>
+                    <div>
+                        <h3 className="text-amber-300 font-bold text-lg">視覺自定義</h3>
+                        <p className="text-amber-500/40 text-xs">設定活動標題、副標題與 Logo</p>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm text-amber-200/70 block px-1">活動主標題</label>
+                            <input
+                                type="text"
+                                value={lottery.eventTitle}
+                                onChange={(e) => lottery.updateEventTitle(e.target.value)}
+                                className="w-full bg-[#1a0510] border border-amber-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 text-sm"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm text-amber-200/70 block px-1">活動副標題</label>
+                            <input
+                                type="text"
+                                value={lottery.eventSubtitle}
+                                onChange={(e) => lottery.updateEventSubtitle(e.target.value)}
+                                className="w-full bg-[#1a0510] border border-amber-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 text-sm"
+                            />
                         </div>
                     </div>
 
-                    <div className="flex-1 space-y-4">
-                        <div className="space-y-2">
-                            <div className="flex gap-3">
-                                <label className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold rounded-lg cursor-pointer transition-all shadow-md flex items-center gap-2">
-                                    <Upload size={14} />
-                                    上傳新圖片
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={handleLogoUpload}
-                                    />
-                                </label>
-                                {customLogo && (
-                                    <button
-                                        onClick={onResetCustomLogo}
-                                        className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-sm font-bold rounded-lg transition-all border border-red-500/20 flex items-center gap-2"
-                                    >
-                                        <Trash2 size={14} />
-                                        恢復預設
-                                    </button>
+                    <div className="space-y-4">
+                        <label className="text-sm text-amber-200/70 block px-1">企業 Logo 上傳</label>
+                        <div className="flex items-center gap-6">
+                            <div className="w-24 h-24 bg-black/40 border-2 border-dashed border-amber-500/20 rounded-2xl flex items-center justify-center overflow-hidden">
+                                {lottery.customLogo ? (
+                                    <img src={lottery.customLogo} alt="Preview" className="w-full h-full object-contain p-2" />
+                                ) : (
+                                    <SettingsIcon className="text-amber-500/20" size={32} />
                                 )}
                             </div>
-                            <div className="text-xs text-amber-500/50 space-y-1">
-                                <p>• 建議比例：1:1 (正方形)</p>
-                                <p>• 建議尺寸：200x200 像素以上</p>
-                                <p>• 支援格式：PNG, SVG, JPG (推薦透明背景 PNG)</p>
+                            <div className="flex-1 space-y-3">
+                                <input
+                                    type="file"
+                                    id="logo-upload"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => lottery.updateCustomLogo(reader.result as string);
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }}
+                                />
+                                <div className="flex gap-2">
+                                    <label htmlFor="logo-upload" className="flex-1 bg-amber-900/30 border border-amber-500/40 text-amber-300 py-2 rounded-lg text-center cursor-pointer hover:bg-amber-900/50 transition-all text-sm font-medium">
+                                        選取圖檔
+                                    </label>
+                                    {lottery.customLogo && (
+                                        <button onClick={lottery.resetCustomLogo} className="px-4 py-2 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/10 transition-all">
+                                            重設
+                                        </button>
+                                    )}
+                                </div>
+                                <p className="text-[10px] text-amber-500/40 px-1">推薦正方形或長方形透明背景 PNG (最大 1MB)</p>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="space-y-4 pt-4 border-t border-amber-500/10">
-                            <div className="space-y-2">
-                                <label className="text-xs text-amber-300 font-bold block">活動主標題</label>
-                                <input
-                                    type="text"
-                                    value={eventTitle || ''}
-                                    onChange={(e) => onUpdateEventTitle?.(e.target.value)}
-                                    placeholder="例如：2026 紫氣東來・尾牙盛典"
-                                    className="w-full bg-black/40 border border-amber-500/30 rounded-lg px-3 py-2 text-amber-100 text-sm focus:outline-none focus:border-amber-400 font-bold tracking-wider"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-xs text-amber-300 font-bold block">活動副標題</label>
-                                <input
-                                    type="text"
-                                    value={eventSubtitle || ''}
-                                    onChange={(e) => onUpdateEventSubtitle?.(e.target.value)}
-                                    placeholder="例如：年終聯歡晚會"
-                                    className="w-full bg-black/40 border border-amber-500/30 rounded-lg px-3 py-2 text-amber-100 text-sm focus:outline-none focus:border-amber-400 tracking-widest"
-                                />
-                            </div>
+                    <div className="space-y-2">
+                        <label className="text-sm text-amber-200/70 block px-1 flex items-center gap-2">
+                            <Timer size={14} /> 抽獎倒數時間 (秒)
+                        </label>
+                        <div className="flex gap-4">
+                            {[1, 3, 5, 8].map((sec) => (
+                                <button
+                                    key={sec}
+                                    onClick={() => lottery.setCountdownDuration(sec)}
+                                    className={`flex-1 py-3 rounded-xl border transition-all font-bold ${lottery.countdownDuration === sec
+                                        ? 'bg-amber-500 border-amber-500 text-red-900 shadow-lg'
+                                        : 'bg-black/20 border-amber-500/20 text-amber-500/50 hover:border-amber-500/40 hover:text-amber-400'
+                                        }`}
+                                >
+                                    {sec} 秒
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Countdown Settings */}
-            <section className="space-y-4">
-                <div className="flex items-center gap-2 text-amber-300 font-bold border-b border-amber-500/20 pb-2">
-                    <Timer size={20} />
-                    <h3>倒數計時設定</h3>
+            {/* 進階設定 / 危險區域 */}
+            <section className="bg-red-900/5 border border-red-900/20 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                    <Trash2 className="text-red-500/60" size={18} />
+                    <h3 className="text-red-300 font-bold">進階操作 / 危險區域</h3>
                 </div>
-                <div className="p-4 bg-black/40 border border-amber-500/20 rounded-xl space-y-3">
-                    <p className="text-sm text-amber-200/60">設定在抽獎開始前的倒數秒數：</p>
-                    <div className="flex gap-4">
-                        {[1, 3, 5].map((seconds) => (
-                            <button
-                                key={seconds}
-                                onClick={() => onUpdateCountdownDuration(seconds)}
-                                className={`flex-1 py-2 rounded-lg font-bold transition-all border ${countdownDuration === seconds
-                                    ? 'bg-amber-600 border-amber-500 text-white shadow-lg scale-105'
-                                    : 'bg-black/40 border-amber-500/30 text-amber-500/60 hover:border-amber-500/60 hover:text-amber-300'
-                                    }`}
-                            >
-                                {seconds} 秒
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Danger Zone */}
-            <section className="space-y-4 pt-4 border-t border-amber-500/10">
-                <div className="flex items-center gap-2 text-red-400 font-bold">
-                    <Trash2 size={20} />
-                    <h3>危險區域</h3>
-                </div>
-                <div className="p-4 bg-red-900/10 border border-red-500/20 rounded-xl space-y-3">
-                    <p className="text-xs text-red-300/70">此動作將清除所有已儲存的員工、獎項、中獎名單與 BGM 設定，並恢復為預設值。</p>
+                <div className="flex flex-col sm:flex-row gap-4">
                     <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            // 第一道確認
-                            if (window.confirm('⚠️ 嚴重警告 ⚠️\n\n確定要重置系統資料嗎？\n\n這將會清除：\n1. 所有中獎名單\n2. 所有獎項設定\n3. 所有員工資料\n\n此動作【無法復原】！')) {
-                                // 第二道確認
-                                if (window.confirm('再次確認：\n\n您真的確定要刪除所有資料重新開始嗎？')) {
-                                    onResetAll();
-                                }
+                        onClick={() => {
+                            if (window.confirm('確定要初始化整個抽獎系統嗎？這會刪除所有本地端與雲端的員工、獎品及中獎資料。')) {
+                                lottery.clearStoredData();
                             }
                         }}
-                        className="bg-red-900/40 hover:bg-red-800 text-red-200 text-xs px-4 py-2 rounded border border-red-500/30 transition-colors"
+                        className="flex-1 py-3 bg-red-900/20 border border-red-500/30 text-red-400 rounded-xl hover:bg-red-900/40 transition-all text-sm font-bold active:scale-95"
                     >
-                        重置系統資料
+                        完全初始化系統 (重置所有資料)
+                    </button>
+                    <button
+                        onClick={() => {
+                            const data = {
+                                employees: lottery.employees,
+                                prizes: lottery.prizes,
+                                winners: lottery.winners,
+                                config: {
+                                    eventTitle: lottery.eventTitle,
+                                    eventSubtitle: lottery.eventSubtitle,
+                                    countdownDuration: lottery.countdownDuration
+                                }
+                            };
+                            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `lottery_backup_${new Date().toISOString().slice(0, 10)}.json`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        }}
+                        className="flex-1 py-3 border border-amber-500/20 text-amber-500/60 rounded-xl hover:bg-amber-500/5 transition-all text-sm font-medium"
+                    >
+                        導出備份 JSON
                     </button>
                 </div>
             </section>

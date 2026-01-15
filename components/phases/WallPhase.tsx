@@ -1,19 +1,12 @@
 // 榮譽榜階段元件
 import React from 'react';
 import { RefreshCw } from 'lucide-react';
-import type { Winner, Prize } from '../../types';
+import { useLotteryContext } from '../../contexts/LotteryContext';
 
-interface WallPhaseProps {
-    winners: Winner[];
-    prizes: Prize[];
-    onReset: () => void;
-}
+export const WallPhase: React.FC = () => {
+    const lottery = useLotteryContext();
+    const { winners, prizes } = lottery;
 
-export const WallPhase: React.FC<WallPhaseProps> = ({
-    winners,
-    prizes,
-    onReset,
-}) => {
     return (
         <div className="w-full max-w-6xl mx-auto h-[80vh] overflow-y-auto z-20 pr-4 custom-scrollbar">
             <div className="text-center mb-12 relative">
@@ -21,8 +14,6 @@ export const WallPhase: React.FC<WallPhaseProps> = ({
                     🏆 榮譽風雲榜 🏆
                 </h2>
                 <p className="text-amber-400/60">恭喜所有獲得好運的同仁</p>
-
-
             </div>
 
             <div className="grid grid-cols-1 gap-8">
@@ -59,7 +50,7 @@ export const WallPhase: React.FC<WallPhaseProps> = ({
 
             <div className="mt-16 text-center pb-12">
                 <button
-                    onClick={onReset}
+                    onClick={lottery.resetAll}
                     className="text-amber-500/50 hover:text-amber-500 flex items-center justify-center gap-2 mx-auto text-sm transition-colors"
                 >
                     <RefreshCw size={14} />

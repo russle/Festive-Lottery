@@ -1,21 +1,14 @@
 // QR Code 集氣階段元件
 import React from 'react';
 import { QrCode, Users } from 'lucide-react';
-import type { Joiner } from '../../types';
 import { GoldenText } from '../GoldenText';
 import { QR_CONFIG } from '../../constants';
+import { useLotteryContext } from '../../contexts/LotteryContext';
 
-interface JoinPhaseProps {
-    joiners: Joiner[];
-    participantCount: number;
-    onStart: () => void;
-}
+export const JoinPhase: React.FC = () => {
+    const lottery = useLotteryContext();
+    const { joiners, participantCount } = lottery;
 
-export const JoinPhase: React.FC<JoinPhaseProps> = ({
-    joiners,
-    participantCount,
-    onStart,
-}) => {
     return (
         <div className="text-center w-full max-w-4xl flex flex-col items-center animate-fade-in-up relative">
             {/* 模擬氣泡動畫 */}
@@ -64,7 +57,7 @@ export const JoinPhase: React.FC<JoinPhaseProps> = ({
 
             {/* 開始按鈕 */}
             <button
-                onClick={onStart}
+                onClick={lottery.startCountdown}
                 className="px-12 py-4 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold text-2xl rounded-full shadow-lg transition-all z-20"
             >
                 集氣完成・開始抽獎

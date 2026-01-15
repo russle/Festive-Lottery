@@ -1,27 +1,19 @@
 // 中獎名單 Tab
 import React from 'react';
 import { Download, Trash2 } from 'lucide-react';
-import type { Prize, Winner } from '../../types';
 import { exportToExcelBuffer } from '../../utils/dataParser';
+import { useLotteryContext } from '../../contexts/LotteryContext';
 
-interface WinnerTabProps {
-    winners: Winner[];
-    currentPrizes: Prize[];
-    onResetWinners: () => void;
-}
+export const WinnerTab: React.FC = () => {
+    const lottery = useLotteryContext();
 
-export const WinnerTab: React.FC<WinnerTabProps> = ({
-    winners,
-    currentPrizes,
-    onResetWinners,
-}) => {
     const exportWinners = () => {
-        if (winners.length === 0) return;
+        if (lottery.winners.length === 0) return;
 
         const exportData: (string | number)[][] = [
             ['獎項', '員工編號', '姓名', '部門', '獲獎時間'],
-            ...winners.map(w => {
-                const prize = currentPrizes.find(p => p.id === w.prizeId);
+            ...lottery.winners.map(w => {
+                const prize = lottery.prizes.find(p => p.id === w.prizeId);
                 return [
                     prize?.name || '未知',
                     w.employee.id,
@@ -50,11 +42,11 @@ export const WinnerTab: React.FC<WinnerTabProps> = ({
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            if (winners.length > 0 && window.confirm('確定要清除所有中獎紀錄嗎？此動作無法復原。')) {
-                                onResetWinners();
+                            if (lottery.winners.length > 0 && window.confirm('確定要清除所有中獎紀錄嗎？此動作無法復原。')) {
+                                lottery.resetWinners();
                             }
                         }}
-                        disabled={winners.length === 0}
+                        disabled={lottery.winners.length === 0}
                         className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Trash2 size={16} />
@@ -62,7 +54,7 @@ export const WinnerTab: React.FC<WinnerTabProps> = ({
                     </button>
                     <button
                         onClick={exportWinners}
-                        disabled={winners.length === 0}
+                        disabled={lottery.winners.length === 0}
                         className="flex items-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-4 py-2 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Download size={16} />
@@ -71,7 +63,7 @@ export const WinnerTab: React.FC<WinnerTabProps> = ({
                 </div>
             </div>
 
-            {winners.length > 0 ? (
+            {lottery.winners.length > 0 ? (
                 <div className="bg-black/30 rounded-xl overflow-hidden border border-amber-500/20">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
@@ -85,8 +77,8 @@ export const WinnerTab: React.FC<WinnerTabProps> = ({
                                 </tr>
                             </thead>
                             <tbody>
-                                {winners.map((w, i) => {
-                                    const prize = currentPrizes.find(p => p.id === w.prizeId);
+                                {lottery.winners.map((w, i) => {
+                                    const prize = lottery.prizes.find(p => p.id === w.prizeId);
                                     return (
                                         <tr key={i} className={i % 2 === 0 ? 'bg-black/10' : ''}>
                                             <td className="px-4 py-2 text-amber-100/90">{prize?.name || '未知'}</td>

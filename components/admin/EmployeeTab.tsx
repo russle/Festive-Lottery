@@ -4,23 +4,15 @@ import { Download, Trash2, Check } from 'lucide-react';
 import type { Employee } from '../../types';
 import { FileUploader } from '../FileUploader';
 import { DataPreview } from '../DataPreview';
+import { useLotteryContext } from '../../contexts/LotteryContext';
 import {
     parseEmployees,
     validateEmployees,
     generateSampleEmployeesExcel,
 } from '../../utils/dataParser';
 
-interface EmployeeTabProps {
-    currentEmployees: Employee[];
-    onUpdateEmployees: (employees: Employee[]) => void;
-    onResetEmployees: () => void;
-}
-
-export const EmployeeTab: React.FC<EmployeeTabProps> = ({
-    currentEmployees,
-    onUpdateEmployees,
-    onResetEmployees,
-}) => {
+export const EmployeeTab: React.FC = () => {
+    const lottery = useLotteryContext();
     const [pendingEmployees, setPendingEmployees] = React.useState<Employee[] | null>(null);
     const [errors, setErrors] = React.useState<string[]>([]);
 
@@ -42,7 +34,7 @@ export const EmployeeTab: React.FC<EmployeeTabProps> = ({
 
     const handleImportEmployees = () => {
         if (pendingEmployees) {
-            onUpdateEmployees(pendingEmployees);
+            lottery.updateEmployees(pendingEmployees);
             setPendingEmployees(null);
             setErrors([]);
         }
@@ -103,7 +95,7 @@ export const EmployeeTab: React.FC<EmployeeTabProps> = ({
             )}
 
             {/* Current Data */}
-            {!pendingEmployees && currentEmployees.length > 0 && (
+            {!pendingEmployees && lottery.employees.length > 0 && (
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
                         <h3 className="text-amber-300 font-medium">目前的員工名單</h3>
@@ -111,7 +103,7 @@ export const EmployeeTab: React.FC<EmployeeTabProps> = ({
                             onClick={(e) => {
                                 e.stopPropagation();
                                 if (window.confirm('確定要清除所有員工資料嗎？這也會清除中獎紀錄。')) {
-                                    onResetEmployees();
+                                    lottery.resetEmployees();
                                 }
                             }}
                             className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 px-4 py-2 rounded-lg transition-colors text-sm"
@@ -120,7 +112,7 @@ export const EmployeeTab: React.FC<EmployeeTabProps> = ({
                             清除員工
                         </button>
                     </div>
-                    <DataPreview type="employees" employees={currentEmployees} />
+                    <DataPreview type="employees" employees={lottery.employees} />
                 </div>
             )}
         </>

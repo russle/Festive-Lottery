@@ -1,31 +1,21 @@
 // 設定面板元件
 import React from 'react';
 import { X, Volume2, VolumeX, Database, Music } from 'lucide-react';
-import type { Phase } from '../types';
+import { useLotteryContext } from '../contexts/LotteryContext';
 
 interface SettingsPanelProps {
     show: boolean;
     onClose: () => void;
-    soundEnabled: boolean;
-    onToggleSound: () => void;
-    bgmEnabled: boolean;
-    onToggleBGM: () => void;
-    onSetPhase: (phase: Phase) => void;
-    onResetCurrentPrize: () => void;
     onOpenAdmin?: () => void;
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     show,
     onClose,
-    soundEnabled,
-    onToggleSound,
-    bgmEnabled,
-    onToggleBGM,
-    onSetPhase,
-    onResetCurrentPrize,
     onOpenAdmin,
 }) => {
+    const lottery = useLotteryContext();
+
     if (!show) return null;
 
     return (
@@ -43,17 +33,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     {onOpenAdmin && (
                         <button
                             onClick={() => {
-                                // Assuming the intent is to pass these as arguments to onOpenAdmin,
-                                // or to make them available in the scope where onOpenAdmin is called.
-                                // The original instruction's syntax was incorrect for direct assignment within onClick.
-                                // If onOpenAdmin is meant to receive these, its signature needs to be updated.
-                                // For now, we'll keep the original onOpenAdmin() call and ensure syntax is valid.
-                                // The lines below are commented out as they are not valid JavaScript statements
-                                // in this context and would cause a syntax error.
-                                // countdownDuration={countdownDuration}
-                                // onUpdateCountdownDuration={onUpdateCountdownDuration}
-                                // onResetAll={onOpenAdmin || (() => { })}
-                                onOpenAdmin?.(); // Call onOpenAdmin if it exists
+                                onOpenAdmin?.();
                                 onClose();
                             }}
                             className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold py-2 rounded flex items-center justify-center gap-2 hover:shadow-lg transition-all"
@@ -63,22 +43,19 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         </button>
                     )}
 
-                    {/* 手機模擬器按鈕 */}
-                    {/* (Mobile Simulator Button Removed) */}
-
                     {/* 音效開關 */}
                     <div className="flex justify-between items-center">
                         <span className="text-xs text-amber-200/60">音效</span>
-                        <button onClick={onToggleSound} className="text-amber-400">
-                            {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                        <button onClick={() => lottery.setSoundEnabled(!lottery.soundEnabled)} className="text-amber-400">
+                            {lottery.soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
                         </button>
                     </div>
 
                     {/* BGM 開關 */}
                     <div className="flex justify-between items-center">
                         <span className="text-xs text-amber-200/60">背景音樂</span>
-                        <button onClick={onToggleBGM} className="text-amber-400">
-                            {bgmEnabled ? <Music size={16} /> : <VolumeX size={16} />}
+                        <button onClick={() => lottery.setBGMEnabled(!lottery.bgmEnabled)} className="text-amber-400">
+                            {lottery.bgmEnabled ? <Music size={16} /> : <VolumeX size={16} />}
                         </button>
                     </div>
 
@@ -87,19 +64,19 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         <span className="text-xs text-amber-200/60">模式切換</span>
                         <div className="flex gap-2">
                             <button
-                                onClick={() => onSetPhase('standby')}
+                                onClick={() => lottery.setPhase('standby')}
                                 className="text-xs bg-amber-900/30 border border-amber-500/20 px-2 py-1 text-amber-300 rounded hover:bg-amber-900/50"
                             >
                                 主
                             </button>
                             <button
-                                onClick={() => onSetPhase('join')}
+                                onClick={() => lottery.setPhase('join')}
                                 className="text-xs bg-amber-900/30 border border-amber-500/20 px-2 py-1 text-amber-300 rounded hover:bg-amber-900/50"
                             >
                                 集氣
                             </button>
                             <button
-                                onClick={() => onSetPhase('wall')}
+                                onClick={() => lottery.setPhase('wall')}
                                 className="text-xs bg-amber-900/30 border border-amber-500/20 px-2 py-1 text-amber-300 rounded hover:bg-amber-900/50"
                             >
                                 榜
@@ -111,7 +88,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     <button
                         onClick={() => {
                             if (window.confirm('確定要重抽此獎嗎？\n這將會清除目前獎項的所有中獎名單！')) {
-                                onResetCurrentPrize();
+                                lottery.resetCurrentPrize();
                             }
                         }}
                         className="w-full border border-red-800 text-red-400 text-xs py-2 rounded hover:bg-red-900/30 transition-colors"
@@ -125,4 +102,3 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 };
 
 export default SettingsPanel;
-

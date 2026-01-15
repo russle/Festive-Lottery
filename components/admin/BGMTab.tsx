@@ -3,12 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Music, Play, Pause, Volume2, Check, Trash2 } from 'lucide-react';
 import { soundManager } from '../../utils/sound';
 import { saveBGMFile, loadBGMFile } from '../../utils/db';
+import { useLotteryContext } from '../../contexts/LotteryContext';
 
-interface BGMTabProps {
-    onResetBGM: () => void;
-}
-
-export const BGMTab: React.FC<BGMTabProps> = ({ onResetBGM }) => {
+export const BGMTab: React.FC = () => {
+    const lottery = useLotteryContext();
     const [bgmFileName, setBgmFileName] = useState<string | null>(null);
     const [isBgmPlaying, setIsBgmPlaying] = useState(false);
     const [volume, setVolume] = useState(soundManager.getBGMVolume() * 100);
@@ -55,7 +53,7 @@ export const BGMTab: React.FC<BGMTabProps> = ({ onResetBGM }) => {
 
     const handleResetBGM = () => {
         if (window.confirm('確定要清除已上傳的背景音樂嗎？')) {
-            onResetBGM();
+            lottery.resetBGM();
             setBgmFileName(null);
             setIsBgmPlaying(false);
         }
@@ -100,24 +98,28 @@ export const BGMTab: React.FC<BGMTabProps> = ({ onResetBGM }) => {
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={toggleBGM}
-                                className="w-12 h-12 bg-amber-400 text-amber-900 rounded-full flex items-center justify-center hover:scale-105 transition-transform"
+                                className="w-12 h-12 bg-amber-500 text-red-900 rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg shadow-amber-500/20"
                             >
-                                {isBgmPlaying ? <Pause size={24} /> : <Play size={24} fill="currentColor" />}
+                                {isBgmPlaying ? <Pause size={24} /> : <Play size={24} />}
                             </button>
                             <div>
-                                <p className="text-amber-200 font-medium">現正播放</p>
-                                <p className="text-amber-500/70 text-sm">{bgmFileName}</p>
+                                <h4 className="text-amber-200 font-medium">{bgmFileName}</h4>
+                                <p className="text-amber-500/40 text-xs">正在預覽背景音樂</p>
                             </div>
                         </div>
+                        <button
+                            onClick={handleResetBGM}
+                            className="p-2 text-red-400/50 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                            title="刪除音樂"
+                        >
+                            <Trash2 size={20} />
+                        </button>
                     </div>
 
                     <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm text-amber-200/60">
-                            <div className="flex items-center gap-2">
-                                <Volume2 size={16} />
-                                <span>音量調節</span>
-                            </div>
-                            <span>{volume}%</span>
+                        <div className="flex justify-between items-center text-xs text-amber-500/60">
+                            <span className="flex items-center gap-1"><Volume2 size={12} /> 音量</span>
+                            <span>{Math.round(volume)}%</span>
                         </div>
                         <input
                             type="range"
@@ -125,16 +127,9 @@ export const BGMTab: React.FC<BGMTabProps> = ({ onResetBGM }) => {
                             max="100"
                             value={volume}
                             onChange={handleVolumeChange}
-                            className="w-full h-2 bg-black/50 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                            className="w-full h-1.5 bg-amber-900/50 rounded-lg appearance-none cursor-pointer accent-amber-500"
                         />
                     </div>
-
-                    <button
-                        onClick={handleResetBGM}
-                        className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1 transition-colors mt-6 mx-auto"
-                    >
-                        <Trash2 size={14} /> 移除背景音樂
-                    </button>
                 </div>
             )}
         </div>
