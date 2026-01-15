@@ -36,21 +36,22 @@ export default function FestiveLottery() {
       <OrnamentCorner position="bottom-right" />
 
       {/* 活動標題與自定義 Logo */}
-      <div className="absolute top-10 left-10 flex flex-col items-start z-10 pointer-events-none">
+      <div className="absolute top-8 left-8 flex items-center gap-6 z-10 pointer-events-none">
         {lottery.customLogo && (
           <img
             src={lottery.customLogo}
             alt="Event Logo"
-            className="h-16 md:h-20 mb-4 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] animate-fade-in"
+            className="h-20 w-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] animate-fade-in"
           />
         )}
-        <h1 className="text-amber-500/40 text-sm md:text-lg tracking-[0.8em] font-medium uppercase animate-tracking-in-expand drop-shadow-sm">
-          {lottery.eventTitle}
-        </h1>
-        <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent mt-2" />
-        <p className="text-amber-200/20 text-[10px] md:text-xs mt-1 tracking-widest font-light">
-          {lottery.eventSubtitle}
-        </p>
+        <div className="flex flex-col items-start">
+          <h1 className="text-amber-500/90 text-xl md:text-2xl tracking-[0.5em] font-bold uppercase animate-tracking-in-expand drop-shadow-sm whitespace-nowrap">
+            {lottery.eventTitle}
+          </h1>
+          <p className="text-amber-200/50 text-xs md:text-sm mt-1 tracking-[0.3em] font-light">
+            {lottery.eventSubtitle}
+          </p>
+        </div>
       </div>
 
       {/* 主抽獎區域 */}
