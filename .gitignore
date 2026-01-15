@@ -36,5 +36,5 @@ dist-ssr
 package-lock.json
 
 # UI/UX Pro Max Skill (使用全域安裝，避免提交至專案)
-.shared/ui-ux-pro-max/
+.shared/
 .agent/workflows/ui-ux-pro-max.md
