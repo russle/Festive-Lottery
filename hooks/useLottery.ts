@@ -6,7 +6,6 @@ import {
     loadEmployees, saveEmployees, clearEmployees,
     loadPrizes, savePrizes, clearPrizes,
     loadWinners, saveWinners, clearWinners as storageClearWinners,
-    loadAIConfig,
     loadCountdownDuration, saveCountdownDuration,
     clearAllData,
 } from '../utils/storage';
@@ -95,11 +94,6 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [bgmEnabled, setBGMEnabledState] = useState(true);
     const [countdownDuration, setCountdownDurationState] = useState(loadCountdownDuration());
-    const [aiConfig, setAIConfig] = useState<AIConfig>(loadAIConfig() || {
-        provider: 'gemini',
-        geminiKey: '',
-        openaiKey: '',
-    });
 
     const rollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const lastSyncedCount = useRef(0);
@@ -114,17 +108,10 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
             const storedEmployees = loadEmployees();
             const storedPrizes = loadPrizes();
             const storedWinners = loadWinners();
-            const storedAIConfig = loadAIConfig();
             const storedCountdownDuration = loadCountdownDuration();
-
             setEmployees(storedEmployees ?? []);
             setPrizes(storedPrizes ?? []);
             setWinners(storedWinners ?? []);
-            setAIConfig(storedAIConfig || {
-                provider: 'gemini',
-                geminiKey: '',
-                openaiKey: '',
-            });
             setCountdownDurationState(storedCountdownDuration);
 
             const savedBGM = await loadBGMFile();
