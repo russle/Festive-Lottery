@@ -194,7 +194,7 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
         if (remaining <= 0) return 0;
 
         const target = currentPrize.countPerRound || (currentPrize.type === 'batch' ? currentPrize.count : 1);
-        return Math.min(target, remaining, 12);
+        return Math.min(target, remaining, 10);
     }, [currentPrize, winners]);
 
     const startCountdown = useCallback(() => {

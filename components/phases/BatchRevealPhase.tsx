@@ -29,16 +29,16 @@ export const BatchRevealPhase: React.FC<BatchRevealPhaseProps> = ({
                     <div
                         key={winner.id}
                         className={`
-              relative bg-red-900/40 border border-amber-500/30 p-6 rounded-xl flex flex-col items-center justify-center min-h-[150px] overflow-hidden group
+              relative bg-red-900/40 border border-amber-500/30 p-8 rounded-xl flex flex-col items-center justify-center min-h-[180px] min-w-[200px] overflow-hidden group
               transition-all duration-700 transform
               ${idx < revealedCount ? 'opacity-100 scale-100 translate-y-0 shadow-lg' : 'opacity-0 scale-90 translate-y-10'}
             `}
                     >
                         <div className="absolute inset-0 bg-gradient-to-t from-red-900/80 to-transparent" />
-                        <div className={`font-bold text-white mb-2 z-10 whitespace-nowrap ${winner.name.length > 3 ? 'text-2xl' : 'text-3xl'}`}>{winner.name}</div>
-                        <div className="text-lg text-amber-300 z-10">{winner.dept}</div>
+                        <div className={`font-bold text-white mb-2 z-10 whitespace-nowrap ${winner.name.length > 3 ? 'text-3xl' : 'text-4xl'}`}>{winner.name}</div>
+                        <div className="text-xl text-amber-300 z-10">{winner.dept}</div>
                         <div className="absolute top-2 right-2 text-amber-500/20">
-                            <Sparkles size={24} />
+                            <Sparkles size={28} />
                         </div>
                     </div>
                 ))}
