@@ -60,6 +60,102 @@ export const SettingsTab: React.FC = () => {
 
     return (
         <div className="space-y-8 pb-10">
+            {/* 視覺自定義設定 */}
+            <section className="bg-black/30 border border-amber-500/20 rounded-2xl p-6 space-y-6">
+                <div className="flex items-center gap-3 border-b border-amber-500/10 pb-4">
+                    <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center">
+                        <Upload className="text-amber-400" size={20} />
+                    </div>
+                    <div>
+                        <h3 className="text-amber-300 font-bold text-lg">視覺自定義</h3>
+                        <p className="text-amber-500/40 text-xs">設定活動標題、副標題與 Logo</p>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-sm text-amber-200/70 block px-1">活動主標題</label>
+                            <input
+                                type="text"
+                                value={lottery.eventTitle}
+                                onChange={(e) => lottery.updateEventTitle(e.target.value)}
+                                className="w-full bg-[#1a0510] border border-amber-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 text-sm"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm text-amber-200/70 block px-1">活動副標題</label>
+                            <input
+                                type="text"
+                                value={lottery.eventSubtitle}
+                                onChange={(e) => lottery.updateEventSubtitle(e.target.value)}
+                                className="w-full bg-[#1a0510] border border-amber-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 text-sm"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <label className="text-sm text-amber-200/70 block px-1">企業 Logo 上傳</label>
+                        <div className="flex items-center gap-6">
+                            <div className="w-24 h-24 bg-black/40 border-2 border-dashed border-amber-500/20 rounded-2xl flex items-center justify-center overflow-hidden">
+                                {lottery.customLogo ? (
+                                    <img src={lottery.customLogo} alt="Preview" className="w-full h-full object-contain p-2" />
+                                ) : (
+                                    <SettingsIcon className="text-amber-500/20" size={32} />
+                                )}
+                            </div>
+                            <div className="flex-1 space-y-3">
+                                <input
+                                    type="file"
+                                    id="logo-upload"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => lottery.updateCustomLogo(reader.result as string);
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }}
+                                />
+                                <div className="flex gap-2">
+                                    <label htmlFor="logo-upload" className="flex-1 bg-amber-900/30 border border-amber-500/40 text-amber-300 py-2 rounded-lg text-center cursor-pointer hover:bg-amber-900/50 transition-all text-sm font-medium">
+                                        選取圖檔
+                                    </label>
+                                    {lottery.customLogo && (
+                                        <button onClick={lottery.resetCustomLogo} className="px-4 py-2 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/10 transition-all">
+                                            重設
+                                        </button>
+                                    )}
+                                </div>
+                                <p className="text-[10px] text-amber-500/40 px-1">推薦正方形或長方形透明背景 PNG (最大 1MB)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm text-amber-200/70 block px-1 flex items-center gap-2">
+                            <Timer size={14} /> 抽獎倒數時間 (秒)
+                        </label>
+                        <div className="flex gap-4">
+                            {[1, 3, 5, 8].map((sec) => (
+                                <button
+                                    key={sec}
+                                    onClick={() => lottery.setCountdownDuration(sec)}
+                                    className={`flex-1 py-3 rounded-xl border transition-all font-bold ${lottery.countdownDuration === sec
+                                        ? 'bg-amber-500 border-amber-500 text-red-900 shadow-lg'
+                                        : 'bg-black/20 border-amber-500/20 text-amber-500/50 hover:border-amber-500/40 hover:text-amber-400'
+                                        }`}
+                                >
+                                    {sec} 秒
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* 雲端同步設定 */}
             <section className="bg-black/30 border border-amber-500/20 rounded-2xl p-6 space-y-6">
                 <div className="flex items-center gap-3 border-b border-amber-500/10 pb-4">
@@ -173,102 +269,6 @@ export const SettingsTab: React.FC = () => {
                                 <span>API Key 僅儲存於本地瀏覽器。</span>
                             )}
                         </p>
-                    </div>
-                </div>
-            </section>
-
-            {/* 視覺自定義設定 */}
-            <section className="bg-black/30 border border-amber-500/20 rounded-2xl p-6 space-y-6">
-                <div className="flex items-center gap-3 border-b border-amber-500/10 pb-4">
-                    <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center">
-                        <Upload className="text-amber-400" size={20} />
-                    </div>
-                    <div>
-                        <h3 className="text-amber-300 font-bold text-lg">視覺自定義</h3>
-                        <p className="text-amber-500/40 text-xs">設定活動標題、副標題與 Logo</p>
-                    </div>
-                </div>
-
-                <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-sm text-amber-200/70 block px-1">活動主標題</label>
-                            <input
-                                type="text"
-                                value={lottery.eventTitle}
-                                onChange={(e) => lottery.updateEventTitle(e.target.value)}
-                                className="w-full bg-[#1a0510] border border-amber-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 text-sm"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm text-amber-200/70 block px-1">活動副標題</label>
-                            <input
-                                type="text"
-                                value={lottery.eventSubtitle}
-                                onChange={(e) => lottery.updateEventSubtitle(e.target.value)}
-                                className="w-full bg-[#1a0510] border border-amber-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 text-sm"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <label className="text-sm text-amber-200/70 block px-1">企業 Logo 上傳</label>
-                        <div className="flex items-center gap-6">
-                            <div className="w-24 h-24 bg-black/40 border-2 border-dashed border-amber-500/20 rounded-2xl flex items-center justify-center overflow-hidden">
-                                {lottery.customLogo ? (
-                                    <img src={lottery.customLogo} alt="Preview" className="w-full h-full object-contain p-2" />
-                                ) : (
-                                    <SettingsIcon className="text-amber-500/20" size={32} />
-                                )}
-                            </div>
-                            <div className="flex-1 space-y-3">
-                                <input
-                                    type="file"
-                                    id="logo-upload"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
-                                            const reader = new FileReader();
-                                            reader.onloadend = () => lottery.updateCustomLogo(reader.result as string);
-                                            reader.readAsDataURL(file);
-                                        }
-                                    }}
-                                />
-                                <div className="flex gap-2">
-                                    <label htmlFor="logo-upload" className="flex-1 bg-amber-900/30 border border-amber-500/40 text-amber-300 py-2 rounded-lg text-center cursor-pointer hover:bg-amber-900/50 transition-all text-sm font-medium">
-                                        選取圖檔
-                                    </label>
-                                    {lottery.customLogo && (
-                                        <button onClick={lottery.resetCustomLogo} className="px-4 py-2 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/10 transition-all">
-                                            重設
-                                        </button>
-                                    )}
-                                </div>
-                                <p className="text-[10px] text-amber-500/40 px-1">推薦正方形或長方形透明背景 PNG (最大 1MB)</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm text-amber-200/70 block px-1 flex items-center gap-2">
-                            <Timer size={14} /> 抽獎倒數時間 (秒)
-                        </label>
-                        <div className="flex gap-4">
-                            {[1, 3, 5, 8].map((sec) => (
-                                <button
-                                    key={sec}
-                                    onClick={() => lottery.setCountdownDuration(sec)}
-                                    className={`flex-1 py-3 rounded-xl border transition-all font-bold ${lottery.countdownDuration === sec
-                                        ? 'bg-amber-500 border-amber-500 text-red-900 shadow-lg'
-                                        : 'bg-black/20 border-amber-500/20 text-amber-500/50 hover:border-amber-500/40 hover:text-amber-400'
-                                        }`}
-                                >
-                                    {sec} 秒
-                                </button>
-                            ))}
-                        </div>
                     </div>
                 </div>
             </section>
