@@ -1,7 +1,10 @@
 import { useState, lazy, Suspense } from 'react';
+import { Settings, QrCode, X, ChevronRight } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 // 匯入自訂 Hook
 import { useLotteryContext } from './contexts/LotteryContext';
+import { loadApiUrl } from './utils/storage';
 
 // 匯入元件
 import {
@@ -23,7 +26,12 @@ const AdminPanel = lazy(() => import('./components/AdminPanel'));
 export default function FestiveLottery() {
   const [showControls, setShowControls] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
   const lottery = useLotteryContext();
+
+  const currentPrizeWinnersCount = lottery.currentPrize
+    ? lottery.winners.filter(w => w.prizeId === lottery.currentPrize!.id).length
+    : 0;
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-[#2a0a12] font-sans text-amber-50 selection:bg-amber-500/30">
@@ -35,45 +43,57 @@ export default function FestiveLottery() {
       <OrnamentCorner position="bottom-left" />
       <OrnamentCorner position="bottom-right" />
 
-      {/* 活動標題與自定義 Logo */}
-      <div className="absolute top-8 left-8 flex items-center gap-4 md:gap-6 z-10 pointer-events-none">
-        {lottery.customLogo && (
-          <div className="relative group">
-            <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-md animate-pulse" />
-            <img
-              src={lottery.customLogo}
-              alt="Event Logo"
-              className="relative h-16 w-16 md:h-20 md:w-20 rounded-full object-cover border-2 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)] animate-fade-in"
-            />
+      {/* Header Area */}
+      <header className="absolute top-0 left-0 w-full p-6 flex justify-between items-start z-30 pointer-events-none">
+        {/* Left: Logo & Title */}
+        <div className="flex items-center gap-4">
+          {lottery.customLogo ? (
+            <div className="relative w-16 h-16 md:w-24 md:h-24 group">
+              <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-md animate-pulse" />
+              <img
+                src={lottery.customLogo}
+                alt="Logo"
+                className="relative w-full h-full rounded-full object-cover border-2 border-amber-300/50 shadow-[0_0_15px_rgba(251,191,36,0.3)] animate-fade-in"
+              />
+              <div className="absolute -inset-1 border border-amber-500/30 rounded-full animate-spin-slow opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+          ) : (
+            <div className="relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-gradient-to-br from-red-900 to-amber-900 rounded-full border-2 border-amber-500/50 shadow-lg">
+              <span className="text-amber-500 font-bold text-xs">LOGO</span>
+            </div>
+          )}
+
+          <div className="flex flex-col">
+            <h1 className="text-xl md:text-3xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-100 drop-shadow-md whitespace-nowrap">
+              {lottery.eventTitle}
+            </h1>
+            <span className="text-sm md:text-lg text-amber-400/80 tracking-[0.3em] font-light hidden md:block mt-1">
+              {lottery.eventSubtitle}
+            </span>
+          </div>
+        </div>
+
+        {/* Right: Current Prize */}
+        {lottery.currentPrize && (
+          <div className="flex flex-col items-center pointer-events-auto animate-slide-in-right">
+            <div className="text-xs text-amber-300/80 mb-1 tracking-widest uppercase">目前抽獎獎項</div>
+            <div className="text-sm md:text-xl font-bold text-white bg-red-900/40 px-4 py-1 md:px-6 md:py-2 rounded-full border border-amber-500/50 backdrop-blur-sm flex items-center gap-2 shadow-lg">
+              <span>{lottery.currentPrize.name}</span>
+              <span className="text-amber-300 text-sm md:text-lg font-mono">
+                ({currentPrizeWinnersCount} / {lottery.currentPrize.count})
+              </span>
+              <button
+                onClick={lottery.nextPrize}
+                className="ml-2 p-1 hover:bg-amber-500/20 rounded-full transition-colors text-amber-200 hover:text-white"
+                title="切換至下一個獎項"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
           </div>
         )}
-        <div className="flex flex-col items-start drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-          <h1 className="text-amber-400/90 text-2xl md:text-3xl tracking-[0.15em] font-bold uppercase animate-tracking-in-expand whitespace-nowrap">
-            {lottery.eventTitle}
-          </h1>
-          <p className="text-amber-200/70 text-base md:text-xl mt-2 tracking-[0.3em] font-medium">
-            {lottery.eventSubtitle}
-          </p>
-        </div>
-      </div>
+      </header>
 
-      {/* 右上角：目前抽獎獎項提示 */}
-      {lottery.currentPrize && (
-        <div className="absolute top-8 right-8 z-10 pointer-events-none animate-slide-in-right">
-          <div className="bg-gradient-to-r from-red-900/40 to-amber-900/40 border border-amber-500/30 backdrop-blur-md rounded-full pl-6 pr-2 py-2 flex items-center gap-4 shadow-lg">
-            <div className="flex flex-col items-end mr-2">
-              <span className="text-[10px] text-amber-500/60 uppercase tracking-widest leading-none mb-1">Current Prize</span>
-              <span className="text-amber-100 font-medium tracking-wider text-sm">目前抽獎獎項</span>
-            </div>
-            <div className="bg-amber-500 text-red-950 px-6 py-2 rounded-full font-bold shadow-inner flex items-center gap-3">
-              <span className="text-lg">{lottery.currentPrize.name}</span>
-              <span className="bg-red-900/20 px-2 py-0.5 rounded text-sm font-mono">
-                ({lottery.winners.filter(w => w.prizeId === lottery.currentPrize!.id).length}/{lottery.currentPrize.count})
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 主抽獎區域 */}
       <main className="relative z-10 w-full h-full flex flex-col items-center justify-center px-4 md:px-10">
@@ -86,13 +106,6 @@ export default function FestiveLottery() {
         {lottery.phase === 'wall' && <WallPhase />}
       </main>
 
-      {/* 設置開關 */}
-      <button
-        onClick={() => setShowControls(true)}
-        className="absolute bottom-6 right-6 z-20 text-amber-500/20 hover:text-amber-500/80 transition-all hover:rotate-90"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
-      </button>
 
       {/* 管理面板 Overlay */}
       {showAdmin && (
@@ -102,11 +115,82 @@ export default function FestiveLottery() {
       )}
 
       {/* 設定面板 */}
-      <SettingsPanel
-        show={showControls}
-        onClose={() => setShowControls(false)}
-        onOpenAdmin={() => setShowAdmin(true)}
-      />
+      {showControls && (
+        <SettingsPanel
+          show={showControls}
+          onClose={() => setShowControls(false)}
+          onOpenAdmin={() => setShowAdmin(true)}
+        />
+      )}
+
+      {/* Floating Action Buttons (QR Code & Settings) */}
+      {!showControls && (
+        <div className="fixed bottom-4 right-4 z-50 flex gap-4">
+          {/* Public QR Code Button */}
+          <button
+            onClick={() => setShowQrModal(true)}
+            className="p-3 bg-purple-900/80 border border-purple-500/30 rounded-full text-purple-300 hover:text-white hover:bg-purple-800 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all transform hover:scale-105"
+            title="顯示查獎 QR Code"
+          >
+            <QrCode size={20} />
+          </button>
+
+          {/* Admin Settings Button */}
+          <button
+            onClick={() => setShowControls(true)}
+            className="p-3 bg-red-900/80 border border-amber-500/30 rounded-full text-amber-400 hover:text-white hover:bg-red-800 hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-all transform hover:scale-105 hover:rotate-90"
+          >
+            <Settings size={20} />
+          </button>
+        </div>
+      )}
+
+      {/* QR Code Modal for Public */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative bg-[#1a1025] border border-purple-500/30 p-8 rounded-2xl shadow-[0_0_50px_rgba(168,85,247,0.3)] max-w-sm w-full text-center space-y-6">
+            <button
+              onClick={() => setShowQrModal(false)}
+              className="absolute top-4 right-4 text-purple-300/50 hover:text-white transition-colors"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300">
+                掃描查獎
+              </h3>
+              <p className="text-purple-200/60 text-sm">
+                請使用手機掃描下方 QR Code<br />輸入工號查詢中獎狀態
+              </p>
+            </div>
+
+            <div className="bg-white p-4 rounded-xl inline-block shadow-xl">
+              <QRCodeSVG
+                value={`${window.location.origin}/check?api=${encodeURIComponent(loadApiUrl() || '')}`}
+                size={200}
+                level="Q"
+                includeMargin={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global Inline Styles (for specific animations) */}
+      <style>{`
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+        
+        @keyframes slide-in-right {
+          from { opacity: 0; transform: translateX(20px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-slide-in-right { animation: slide-in-right 0.5s ease-out forwards; }
+      `}</style>
 
     </div>
   );
