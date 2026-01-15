@@ -133,7 +133,7 @@ export const CheckPage: React.FC = () => {
                                         <div className="text-4xl mb-2">{record.prizeIcon}</div>
                                         <p className="text-xl font-bold text-fuchsia-100">{record.prizeName}</p>
                                         <p className="text-xs text-fuchsia-400/60 mt-1">
-                                            {new Date(record.timestamp).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}
+                                            {new Date(record.timestamp.replace(' ', 'T') + 'Z').toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false })}
                                         </p>
                                     </div>
                                 ))}
