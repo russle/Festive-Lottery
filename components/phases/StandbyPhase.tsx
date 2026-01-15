@@ -13,7 +13,7 @@ export const StandbyPhase: React.FC = () => {
     return (
         <div className="text-center w-full max-w-5xl animate-fade-in-up flex flex-col items-center">
             {/* 獎項圖示 */}
-            <div className="relative inline-flex items-center justify-center mb-6 md:mb-10">
+            <div className="relative inline-flex items-center justify-center mb-6 md:mb-10 mt-8">
                 <div className="absolute inset-0 bg-red-500/20 blur-[80px] animate-pulse" />
                 <div className="absolute inset-0 bg-amber-500/10 blur-[40px]" />
                 <div className="relative text-[100px] md:text-[140px] transform hover:scale-110 transition-transform duration-700 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
