@@ -201,6 +201,8 @@ export default function FestiveLottery() {
           onClose={() => setShowControls(false)}
           soundEnabled={lottery.soundEnabled}
           onToggleSound={() => lottery.setSoundEnabled(!lottery.soundEnabled)}
+          bgmEnabled={lottery.bgmEnabled}
+          onToggleBGM={() => lottery.setBGMEnabled(!lottery.bgmEnabled)}
           onSetPhase={lottery.setPhase}
           onResetCurrentPrize={lottery.resetCurrentPrize}
           onOpenAdmin={() => setShowAdmin(true)}

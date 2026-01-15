@@ -7,6 +7,7 @@ class SoundManager {
     private audios: Partial<Record<SoundType, HTMLAudioElement>> = {};
     private bgm: HTMLAudioElement | null = null;
     private enabled: boolean = true;
+    private bgmEnabled: boolean = true;
     private bgmVolume: number = 0.5;
 
     constructor() {
@@ -24,10 +25,20 @@ class SoundManager {
         this.enabled = enabled;
         if (!enabled) {
             this.stopAll();
+        }
+    }
+
+    setBGMEnabled(enabled: boolean) {
+        this.bgmEnabled = enabled;
+        if (!enabled) {
             this.pauseBGM();
         } else if (this.bgm) {
-            // 如果啟用了且有 BGM，可以考慮是否自動恢復，這裡交給 UI 控制
+            this.playBGM();
         }
+    }
+
+    getBGMEnabled() {
+        return this.bgmEnabled;
     }
 
     /** 背景音樂控制 */
@@ -44,7 +55,7 @@ class SoundManager {
     }
 
     playBGM() {
-        if (!this.enabled || !this.bgm) return;
+        if (!this.bgmEnabled || !this.bgm) return;
         this.bgm.play().catch(err => console.warn('BGM play failed:', err));
     }
 

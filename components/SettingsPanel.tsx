@@ -1,6 +1,6 @@
 // 設定面板元件
 import React from 'react';
-import { X, Volume2, VolumeX, Database } from 'lucide-react';
+import { X, Volume2, VolumeX, Database, Music } from 'lucide-react';
 import type { Phase } from '../types';
 
 interface SettingsPanelProps {
@@ -8,6 +8,8 @@ interface SettingsPanelProps {
     onClose: () => void;
     soundEnabled: boolean;
     onToggleSound: () => void;
+    bgmEnabled: boolean;
+    onToggleBGM: () => void;
     onSetPhase: (phase: Phase) => void;
     onResetCurrentPrize: () => void;
     onOpenAdmin?: () => void;
@@ -18,6 +20,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     onClose,
     soundEnabled,
     onToggleSound,
+    bgmEnabled,
+    onToggleBGM,
     onSetPhase,
     onResetCurrentPrize,
     onOpenAdmin,
@@ -57,6 +61,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         <span className="text-xs text-amber-200/60">音效</span>
                         <button onClick={onToggleSound} className="text-amber-400">
                             {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                        </button>
+                    </div>
+
+                    {/* BGM 開關 */}
+                    <div className="flex justify-between items-center">
+                        <span className="text-xs text-amber-200/60">背景音樂</span>
+                        <button onClick={onToggleBGM} className="text-amber-400">
+                            {bgmEnabled ? <Music size={16} /> : <VolumeX size={16} />}
                         </button>
                     </div>
 

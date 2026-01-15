@@ -36,10 +36,12 @@ export interface UseLotteryReturn extends UseEventBrandingReturn, Omit<UseAIComm
     participantCount: number;
     joiners: Joiner[];
     soundEnabled: boolean;
+    bgmEnabled: boolean;
 
     // Actions
     setPhase: (phase: Phase) => void;
     setSoundEnabled: (enabled: boolean) => void;
+    setBGMEnabled: (enabled: boolean) => void;
     startCountdown: () => void;
     startRolling: () => void;
     stopRolling: () => void;
@@ -86,6 +88,7 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
     const [participantCount, setParticipantCount] = useState(0);
     const [joiners, setJoiners] = useState<Joiner[]>([]);
     const [soundEnabled, setSoundEnabled] = useState(true);
+    const [bgmEnabled, setBGMEnabledState] = useState(true);
 
     const rollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const lastSyncedCount = useRef(0);
@@ -467,6 +470,7 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
         participantCount,
         joiners,
         soundEnabled,
+        bgmEnabled,
 
         // From branding hook
         ...branding,
@@ -482,6 +486,10 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
         setSoundEnabled: (enabled: boolean) => {
             setSoundEnabled(enabled);
             soundManager.setEnabled(enabled);
+        },
+        setBGMEnabled: (enabled: boolean) => {
+            setBGMEnabledState(enabled);
+            soundManager.setBGMEnabled(enabled);
         },
         startCountdown,
         startRolling,
