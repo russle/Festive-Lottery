@@ -1,6 +1,6 @@
 // 單獎揭曉階段元件
 import React from 'react';
-import { PartyPopper, Gem, SkipForward } from 'lucide-react';
+import { PartyPopper, Gem, SkipForward, ChevronLeft } from 'lucide-react';
 import type { Winner } from '../../types';
 
 interface RevealPhaseProps {
@@ -9,6 +9,8 @@ interface RevealPhaseProps {
     isAiLoading: boolean;
     onGenerateWinnerComment: () => void;
     onNext: () => void;
+    onPrevious: () => void;
+    canGoPrevious: boolean;
 }
 
 export const RevealPhase: React.FC<RevealPhaseProps> = ({
@@ -17,6 +19,8 @@ export const RevealPhase: React.FC<RevealPhaseProps> = ({
     isAiLoading,
     onGenerateWinnerComment,
     onNext,
+    onPrevious,
+    canGoPrevious,
 }) => {
     if (!winner) return null;
 
@@ -60,10 +64,18 @@ export const RevealPhase: React.FC<RevealPhaseProps> = ({
                 )}
             </div>
 
-            <div className="mt-10">
+            <div className="mt-10 flex gap-6 justify-center items-center">
+                {canGoPrevious && (
+                    <button
+                        onClick={onPrevious}
+                        className="text-amber-400/60 hover:text-amber-300 flex items-center gap-2 transition-colors font-medium tracking-wide"
+                    >
+                        <ChevronLeft size={20} /> 上一獎項
+                    </button>
+                )}
                 <button
                     onClick={onNext}
-                    className="text-amber-400/60 hover:text-amber-300 flex items-center gap-2 mx-auto transition-colors font-medium tracking-wide"
+                    className="text-amber-400/60 hover:text-amber-300 flex items-center gap-2 transition-colors font-medium tracking-wide"
                 >
                     繼續下一個獎項 <SkipForward size={20} />
                 </button>

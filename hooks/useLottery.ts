@@ -46,6 +46,7 @@ export interface UseLotteryReturn extends UseEventBrandingReturn, Omit<UseAIComm
     startRolling: () => void;
     stopRolling: () => void;
     nextPrize: () => void;
+    previousPrize: () => void;
     resetAll: () => void;
     resetCurrentPrize: () => void;
     generatePrizeAI: () => void;
@@ -305,6 +306,15 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
         }
     }, [currentPrizeIndex, prizes.length, winners, currentPrize]);
 
+    const previousPrize = useCallback(() => {
+        soundManager.play('click');
+
+        if (currentPrizeIndex > 0) {
+            setCurrentPrizeIndex(prev => prev - 1);
+            setPhase('standby');
+        }
+    }, [currentPrizeIndex]);
+
     // ========================================================================
     // Reset Functions
     // ========================================================================
@@ -496,6 +506,7 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
         startRolling,
         stopRolling,
         nextPrize,
+        previousPrize,
         resetAll,
         resetCurrentPrize,
         generatePrizeAI,

@@ -171,6 +171,8 @@ export default function FestiveLottery() {
             isAiLoading={lottery.isAiLoading}
             onGenerateWinnerComment={lottery.generateWinnerAI}
             onNext={lottery.nextPrize}
+            onPrevious={lottery.previousPrize}
+            canGoPrevious={lottery.currentPrizeIndex > 0}
           />
         )}
 
@@ -181,6 +183,8 @@ export default function FestiveLottery() {
             batchWinners={lottery.currentBatchWinners}
             revealedCount={lottery.batchRevealedCount}
             onNext={lottery.nextPrize}
+            onPrevious={lottery.previousPrize}
+            canGoPrevious={lottery.currentPrizeIndex > 0}
           />
         )}
 
