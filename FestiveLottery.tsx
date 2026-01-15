@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
-import { Settings, QrCode, X, ChevronRight } from 'lucide-react';
+import { Settings, QrCode, X, ChevronRight, ChevronLeft } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 // 匯入自訂 Hook
@@ -76,13 +76,22 @@ export default function FestiveLottery() {
           <div className="flex flex-col items-center pointer-events-auto animate-slide-in-right">
             <div className="text-xs text-amber-300/80 mb-1 tracking-widest uppercase">目前抽獎獎項</div>
             <div className="text-sm md:text-xl font-bold text-white bg-red-900/40 px-4 py-1 md:px-6 md:py-2 rounded-full border border-amber-500/50 backdrop-blur-sm flex items-center gap-2 shadow-lg">
+              {lottery.currentPrizeIndex > 0 && (
+                <button
+                  onClick={lottery.previousPrize}
+                  className="p-1 hover:bg-amber-500/20 rounded-full transition-colors text-amber-200 hover:text-white"
+                  title="切換至上一個獎項"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+              )}
               <span>{lottery.currentPrize.name}</span>
               <span className="text-amber-300 text-sm md:text-lg font-mono">
                 ({currentPrizeWinnersCount} / {lottery.currentPrize.count})
               </span>
               <button
                 onClick={lottery.nextPrize}
-                className="ml-2 p-1 hover:bg-amber-500/20 rounded-full transition-colors text-amber-200 hover:text-white"
+                className="p-1 hover:bg-amber-500/20 rounded-full transition-colors text-amber-200 hover:text-white"
                 title="切換至下一個獎項"
               >
                 <ChevronRight size={20} />
