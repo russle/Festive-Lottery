@@ -57,6 +57,8 @@ export default function FestiveLottery() {
           onUpdatePrizes={lottery.updatePrizes}
           aiConfig={lottery.aiConfig}
           onUpdateAIConfig={lottery.updateAIConfig}
+          countdownDuration={lottery.countdownDuration}
+          onUpdateCountdownDuration={lottery.setCountdownDuration}
           onResetAll={lottery.clearStoredData}
           onResetEmployees={lottery.resetEmployees}
           onResetPrizes={lottery.resetPrizes}
@@ -209,9 +211,7 @@ export default function FestiveLottery() {
           onToggleBGM={() => lottery.setBGMEnabled(!lottery.bgmEnabled)}
           onSetPhase={lottery.setPhase}
           onResetCurrentPrize={lottery.resetCurrentPrize}
-          countdownDuration={lottery.countdownDuration}
-          onUpdateCountdownDuration={lottery.setCountdownDuration}
-          onOpenAdmin={() => setIsAdminOpen(true)}
+          onOpenAdmin={() => setShowAdmin(true)}
         />
       )}
 

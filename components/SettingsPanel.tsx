@@ -12,8 +12,6 @@ interface SettingsPanelProps {
     onToggleBGM: () => void;
     onSetPhase: (phase: Phase) => void;
     onResetCurrentPrize: () => void;
-    countdownDuration: number;
-    onUpdateCountdownDuration: (seconds: number) => void;
     onOpenAdmin?: () => void;
 }
 
@@ -26,8 +24,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     onToggleBGM,
     onSetPhase,
     onResetCurrentPrize,
-    countdownDuration,
-    onUpdateCountdownDuration,
     onOpenAdmin,
 }) => {
     if (!show) return null;

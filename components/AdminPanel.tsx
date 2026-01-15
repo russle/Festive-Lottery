@@ -27,6 +27,8 @@ interface AdminPanelProps {
     onUpdateEventTitle?: (title: string) => void;
     eventSubtitle?: string;
     onUpdateEventSubtitle?: (subtitle: string) => void;
+    countdownDuration: number;
+    onUpdateCountdownDuration: (seconds: number) => void;
     onClose: () => void;
 }
 
@@ -52,6 +54,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     onUpdateEventTitle,
     eventSubtitle,
     onUpdateEventSubtitle,
+    countdownDuration,
+    onUpdateCountdownDuration,
     onClose,
 }) => {
     const [activeTab, setActiveTab] = useState<TabType>('employees');
@@ -151,6 +155,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             onUpdateEventTitle={onUpdateEventTitle}
                             eventSubtitle={eventSubtitle}
                             onUpdateEventSubtitle={onUpdateEventSubtitle}
+                            countdownDuration={countdownDuration}
+                            onUpdateCountdownDuration={onUpdateCountdownDuration}
                             onResetAll={onResetAll}
                         />
                     )}

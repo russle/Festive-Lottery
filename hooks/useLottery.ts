@@ -1,6 +1,4 @@
-// 抽獎邏輯自訂 Hook (重構後 - 使用組合模式)
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { Phase, Employee, Prize, Winner, Joiner } from '../types';
 import type { Phase, Employee, Prize, Winner, Joiner, AIConfig } from '../types';
 import { lotteryAPI } from '../api/lottery';
 import { DEFAULT_CONFIG } from '../constants';
@@ -8,7 +6,7 @@ import {
     loadEmployees, saveEmployees, clearEmployees,
     loadPrizes, savePrizes, clearPrizes,
     loadWinners, saveWinners, clearWinners as storageClearWinners,
-    loadAIConfig, saveAIConfig,
+    loadAIConfig,
     loadCountdownDuration, saveCountdownDuration,
     clearAllData,
 } from '../utils/storage';
@@ -97,7 +95,11 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [bgmEnabled, setBGMEnabledState] = useState(true);
     const [countdownDuration, setCountdownDurationState] = useState(loadCountdownDuration());
-    const [aiConfig, setAIConfig] = useState<AIConfig>(loadAIConfig());
+    const [aiConfig, setAIConfig] = useState<AIConfig>(loadAIConfig() || {
+        provider: 'gemini',
+        geminiKey: '',
+        openaiKey: '',
+    });
 
     const rollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const lastSyncedCount = useRef(0);
@@ -118,7 +120,11 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
             setEmployees(storedEmployees ?? []);
             setPrizes(storedPrizes ?? []);
             setWinners(storedWinners ?? []);
-            setAIConfig(storedAIConfig);
+            setAIConfig(storedAIConfig || {
+                provider: 'gemini',
+                geminiKey: '',
+                openaiKey: '',
+            });
             setCountdownDurationState(storedCountdownDuration);
 
             const savedBGM = await loadBGMFile();
@@ -366,6 +372,11 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
         // 如果需要重置，用戶可以手動使用 resetAll() 或 resetWinners()
     }, []);
 
+    const setCountdownDuration = useCallback((seconds: number) => {
+        setCountdownDurationState(seconds);
+        saveCountdownDuration(seconds);
+    }, []);
+
     const resetEmployees = useCallback(() => {
         clearEmployees();
         lotteryAPI.resetEmployees();
@@ -502,8 +513,8 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
         // From AI hook (selected)
         aiCommentary: ai.aiCommentary,
         isAiLoading: ai.isAiLoading,
-        aiConfig: ai.config,
-        updateAIConfig: ai.updateConfig,
+        aiConfig: ai.aiConfig,
+        updateAIConfig: ai.updateAIConfig,
         countdownDuration,
         setCountdownDuration,
         startCountdown,
@@ -516,7 +527,6 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
             setBGMEnabledState(enabled);
             soundManager.setBGMEnabled(enabled);
         },
-        startCountdown,
         startRolling,
         stopRolling,
         nextPrize,

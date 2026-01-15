@@ -11,8 +11,6 @@ const STORAGE_KEYS = {
     CUSTOM_LOGO: 'lottery_custom_logo',
     EVENT_TITLE: 'lottery_event_title',
     EVENT_SUBTITLE: 'lottery_event_subtitle',
-    EVENT_TITLE: 'lottery_event_title',
-    EVENT_SUBTITLE: 'lottery_event_subtitle',
     HOST_ID: 'lottery_host_id',
     COUNTDOWN_DURATION: 'lottery_countdown_duration',
 };

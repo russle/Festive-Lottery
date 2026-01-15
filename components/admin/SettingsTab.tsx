@@ -19,8 +19,6 @@ interface SettingsTabProps {
     onUpdateEventTitle?: (title: string) => void;
     eventSubtitle?: string;
     onUpdateEventSubtitle?: (subtitle: string) => void;
-    eventSubtitle?: string;
-    onUpdateEventSubtitle?: (subtitle: string) => void;
     countdownDuration: number;
     onUpdateCountdownDuration: (seconds: number) => void;
     onResetAll: () => void;
@@ -447,6 +445,31 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                                 />
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Countdown Settings */}
+            <section className="space-y-4">
+                <div className="flex items-center gap-2 text-amber-300 font-bold border-b border-amber-500/20 pb-2">
+                    <Timer size={20} />
+                    <h3>倒數計時設定</h3>
+                </div>
+                <div className="p-4 bg-black/40 border border-amber-500/20 rounded-xl space-y-3">
+                    <p className="text-sm text-amber-200/60">設定在抽獎開始前的倒數秒數：</p>
+                    <div className="flex gap-4">
+                        {[1, 3, 5].map((seconds) => (
+                            <button
+                                key={seconds}
+                                onClick={() => onUpdateCountdownDuration(seconds)}
+                                className={`flex-1 py-2 rounded-lg font-bold transition-all border ${countdownDuration === seconds
+                                    ? 'bg-amber-600 border-amber-500 text-white shadow-lg scale-105'
+                                    : 'bg-black/40 border-amber-500/30 text-amber-500/60 hover:border-amber-500/60 hover:text-amber-300'
+                                    }`}
+                            >
+                                {seconds} 秒
+                            </button>
+                        ))}
                     </div>
                 </div>
             </section>
