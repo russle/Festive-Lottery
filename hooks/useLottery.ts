@@ -141,7 +141,8 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
     // 切換獎項時清空 AI 評語
     useEffect(() => {
         ai.clearCommentary();
-    }, [currentPrizeIndex, ai]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPrizeIndex]);
 
     // ========================================================================
     // Join Phase Animation
