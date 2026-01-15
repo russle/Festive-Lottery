@@ -23,6 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
+# AI Agent Skills (local configuration)
+.cursor/
+.opencode/
+.github/skills/
+
 # Env files
 .env
 .env.*
