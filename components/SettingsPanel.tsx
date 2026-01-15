@@ -12,6 +12,8 @@ interface SettingsPanelProps {
     onToggleBGM: () => void;
     onSetPhase: (phase: Phase) => void;
     onResetCurrentPrize: () => void;
+    countdownDuration: number;
+    onUpdateCountdownDuration: (seconds: number) => void;
     onOpenAdmin?: () => void;
 }
 
@@ -24,6 +26,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     onToggleBGM,
     onSetPhase,
     onResetCurrentPrize,
+    countdownDuration,
+    onUpdateCountdownDuration,
     onOpenAdmin,
 }) => {
     if (!show) return null;
@@ -43,7 +47,17 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     {onOpenAdmin && (
                         <button
                             onClick={() => {
-                                onOpenAdmin();
+                                // Assuming the intent is to pass these as arguments to onOpenAdmin,
+                                // or to make them available in the scope where onOpenAdmin is called.
+                                // The original instruction's syntax was incorrect for direct assignment within onClick.
+                                // If onOpenAdmin is meant to receive these, its signature needs to be updated.
+                                // For now, we'll keep the original onOpenAdmin() call and ensure syntax is valid.
+                                // The lines below are commented out as they are not valid JavaScript statements
+                                // in this context and would cause a syntax error.
+                                // countdownDuration={countdownDuration}
+                                // onUpdateCountdownDuration={onUpdateCountdownDuration}
+                                // onResetAll={onOpenAdmin || (() => { })}
+                                onOpenAdmin?.(); // Call onOpenAdmin if it exists
                                 onClose();
                             }}
                             className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold py-2 rounded flex items-center justify-center gap-2 hover:shadow-lg transition-all"

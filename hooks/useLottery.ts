@@ -1,14 +1,16 @@
 // 抽獎邏輯自訂 Hook (重構後 - 使用組合模式)
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Phase, Employee, Prize, Winner, Joiner } from '../types';
+import type { Phase, Employee, Prize, Winner, Joiner, AIConfig } from '../types';
 import { lotteryAPI } from '../api/lottery';
 import { DEFAULT_CONFIG } from '../constants';
 import {
-    savePrizes, loadPrizes,
-    saveWinners, loadWinners,
+    loadEmployees, saveEmployees, clearEmployees,
+    loadPrizes, savePrizes, clearPrizes,
+    loadWinners, saveWinners, clearWinners as storageClearWinners,
+    loadAIConfig, saveAIConfig,
+    loadCountdownDuration, saveCountdownDuration,
     clearAllData,
-    saveEmployees, loadEmployees, clearEmployees,
-    clearPrizes, clearWinners as storageClearWinners,
 } from '../utils/storage';
 import { soundManager } from '../utils/sound';
 import { loadBGMFile } from '../utils/db';
@@ -37,6 +39,8 @@ export interface UseLotteryReturn extends UseEventBrandingReturn, Omit<UseAIComm
     joiners: Joiner[];
     soundEnabled: boolean;
     bgmEnabled: boolean;
+    aiConfig: AIConfig;
+    countdownDuration: number;
 
     // Actions
     setPhase: (phase: Phase) => void;
@@ -56,6 +60,8 @@ export interface UseLotteryReturn extends UseEventBrandingReturn, Omit<UseAIComm
     updateEmployees: (employees: Employee[]) => void;
     updatePrizes: (prizes: Prize[]) => void;
     clearStoredData: () => void;
+    updateAIConfig: (config: AIConfig) => void;
+    setCountdownDuration: (seconds: number) => void;
     resetEmployees: () => void;
     resetPrizes: () => void;
     resetWinners: () => void;
@@ -90,6 +96,8 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
     const [joiners, setJoiners] = useState<Joiner[]>([]);
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [bgmEnabled, setBGMEnabledState] = useState(true);
+    const [countdownDuration, setCountdownDurationState] = useState(loadCountdownDuration());
+    const [aiConfig, setAIConfig] = useState<AIConfig>(loadAIConfig());
 
     const rollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const lastSyncedCount = useRef(0);
@@ -104,10 +112,14 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
             const storedEmployees = loadEmployees();
             const storedPrizes = loadPrizes();
             const storedWinners = loadWinners();
+            const storedAIConfig = loadAIConfig();
+            const storedCountdownDuration = loadCountdownDuration();
 
             setEmployees(storedEmployees ?? []);
             setPrizes(storedPrizes ?? []);
             setWinners(storedWinners ?? []);
+            setAIConfig(storedAIConfig);
+            setCountdownDurationState(storedCountdownDuration);
 
             const savedBGM = await loadBGMFile();
             if (savedBGM) soundManager.setBGM(savedBGM);
@@ -210,16 +222,17 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
 
         if (eligible.length < countToDraw) {
             alert(`候選人不足！\n目前可抽人數：${eligible.length} 人\n本輪需抽出：${countToDraw} 人\n請檢查是否所有人均已中獎。`);
+            soundManager.stop('rolling');
             return;
         }
 
         setPhase('countdown');
-        setCountdown(DEFAULT_CONFIG.countdownSeconds);
+        setCountdown(countdownDuration);
         ai.clearCommentary();
         soundManager.play('click');
         soundManager.play('countdown', true);
 
-        let count = DEFAULT_CONFIG.countdownSeconds;
+        let count = countdownDuration;
         const timer = setInterval(() => {
             count--;
             setCountdown(count);
@@ -489,10 +502,11 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
         // From AI hook (selected)
         aiCommentary: ai.aiCommentary,
         isAiLoading: ai.isAiLoading,
-        aiConfig: ai.aiConfig,
-        updateAIConfig: ai.updateAIConfig,
-
-        // Actions
+        aiConfig: ai.config,
+        updateAIConfig: ai.updateConfig,
+        countdownDuration,
+        setCountdownDuration,
+        startCountdown,
         setPhase,
         setSoundEnabled: (enabled: boolean) => {
             setSoundEnabled(enabled);

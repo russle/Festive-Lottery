@@ -209,7 +209,9 @@ export default function FestiveLottery() {
           onToggleBGM={() => lottery.setBGMEnabled(!lottery.bgmEnabled)}
           onSetPhase={lottery.setPhase}
           onResetCurrentPrize={lottery.resetCurrentPrize}
-          onOpenAdmin={() => setShowAdmin(true)}
+          countdownDuration={lottery.countdownDuration}
+          onUpdateCountdownDuration={lottery.setCountdownDuration}
+          onOpenAdmin={() => setIsAdminOpen(true)}
         />
       )}
 

@@ -1,6 +1,6 @@
 // 系統設定 Tab (AI, Cloud, Logo, Danger Zone)
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, ExternalLink, Cloud, RefreshCw, QrCode, Download, Trash2, Upload } from 'lucide-react';
+import { Settings as SettingsIcon, ExternalLink, Cloud, RefreshCw, QrCode, Download, Trash2, Upload, Timer } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { Employee, Prize, Winner, AIConfig } from '../../types';
 import { cloudLotteryAPI } from '../../api/lottery';
@@ -19,6 +19,10 @@ interface SettingsTabProps {
     onUpdateEventTitle?: (title: string) => void;
     eventSubtitle?: string;
     onUpdateEventSubtitle?: (subtitle: string) => void;
+    eventSubtitle?: string;
+    onUpdateEventSubtitle?: (subtitle: string) => void;
+    countdownDuration: number;
+    onUpdateCountdownDuration: (seconds: number) => void;
     onResetAll: () => void;
 }
 
@@ -35,6 +39,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
     onUpdateEventTitle,
     eventSubtitle,
     onUpdateEventSubtitle,
+    countdownDuration,
+    onUpdateCountdownDuration,
     onResetAll,
 }) => {
     const [apiUrl, setApiUrlState] = useState(loadApiUrl() || '');

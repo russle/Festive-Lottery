@@ -11,7 +11,10 @@ const STORAGE_KEYS = {
     CUSTOM_LOGO: 'lottery_custom_logo',
     EVENT_TITLE: 'lottery_event_title',
     EVENT_SUBTITLE: 'lottery_event_subtitle',
+    EVENT_TITLE: 'lottery_event_title',
+    EVENT_SUBTITLE: 'lottery_event_subtitle',
     HOST_ID: 'lottery_host_id',
+    COUNTDOWN_DURATION: 'lottery_countdown_duration',
 };
 
 /**
@@ -190,4 +193,15 @@ export const saveHostId = (hostId: string) => {
 
 export const loadHostId = (): string => {
     return localStorage.getItem(STORAGE_KEYS.HOST_ID) || 'default';
+};
+
+// 倒數秒數儲存
+export const saveCountdownDuration = (seconds: number) => {
+    localStorage.setItem(STORAGE_KEYS.COUNTDOWN_DURATION, String(seconds));
+};
+
+export const loadCountdownDuration = (): number => {
+    const stored = localStorage.getItem(STORAGE_KEYS.COUNTDOWN_DURATION);
+    const parsed = stored ? parseInt(stored, 10) : 5;
+    return isNaN(parsed) ? 5 : parsed;
 };
