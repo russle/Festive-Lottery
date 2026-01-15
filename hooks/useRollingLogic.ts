@@ -21,75 +21,12 @@ export const useRollingLogic = (
 
     const rollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    // Join Phase Animation
-    useEffect(() => {
-        let interval: ReturnType<typeof setInterval>;
-        if (phase === 'join' && employees.length > 0) {
-            interval = setInterval(() => {
-                const randomEmp = employees[Math.floor(Math.random() * employees.length)];
-                const newJoiner: Joiner = {
-                    id: Date.now().toString() + Math.random(),
-                    name: randomEmp.name,
-                    x: Math.random() * 80 + 10,
-                    animationDuration: Math.random() * 3 + 2,
-                };
-                setJoiners(prev => [...prev.slice(-15), newJoiner]);
-                setParticipantCount(prev => prev + 1);
-                soundManager.play('join');
-            }, 400);
-        }
-        return () => clearInterval(interval);
-    }, [phase, employees]);
-
-    // Batch Reveal Auto-progression
-    useEffect(() => {
-        let timer: ReturnType<typeof setTimeout>;
-        if (phase === 'batch_reveal' && batchRevealedCount < currentBatchWinners.length) {
-            timer = setTimeout(() => {
-                setBatchRevealedCount(prev => prev + 1);
-            }, DEFAULT_CONFIG.batchRevealDelayMs);
-        }
-        return () => clearTimeout(timer);
-    }, [phase, batchRevealedCount, currentBatchWinners]);
-
+    // Define callbacks first (before useEffect dependencies)
     const startRollingInternal = useCallback(() => {
         soundManager.stop('countdown');
         soundManager.play('rolling', true);
         setPhase('rolling');
     }, []);
-
-    const startCountdown = useCallback(() => {
-        if (phase !== 'standby' && phase !== 'join' && phase !== 'completed') return;
-
-        const countToDraw = getCountToDraw();
-        if (countToDraw === 0) {
-            alert('此獎項已全數抽完！請切換至下一個獎項。');
-            return;
-        }
-
-        const eligible = getEligibleEmployees();
-        if (eligible.length < countToDraw) {
-            alert(`候選人不足！\n目前可抽人數：${eligible.length} 人\n本輪需抽出：${countToDraw} 人\n請檢查是否所有人均已中獎。`);
-            soundManager.stop('rolling');
-            return;
-        }
-
-        setPhase('countdown');
-        setCountdown(countdownDuration);
-        onClearAI();
-        soundManager.play('click');
-        soundManager.play('countdown', true);
-
-        let count = countdownDuration;
-        const timer = setInterval(() => {
-            count--;
-            setCountdown(count);
-            if (count === 0) {
-                clearInterval(timer);
-                startRollingInternal();
-            }
-        }, 1000);
-    }, [phase, getEligibleEmployees, getCountToDraw, onClearAI, countdownDuration, startRollingInternal]);
 
     const startRolling = useCallback(() => {
         const eligible = getEligibleEmployees();
@@ -130,6 +67,82 @@ export const useRollingLogic = (
             setPhase('reveal');
         }
     }, [phase, getEligibleEmployees, getCountToDraw, onDraw]);
+
+    const startCountdown = useCallback(() => {
+        if (phase !== 'standby' && phase !== 'join' && phase !== 'completed') return;
+
+        const countToDraw = getCountToDraw();
+        if (countToDraw === 0) {
+            alert('此獎項已全數抽完！請切換至下一個獎項。');
+            return;
+        }
+
+        const eligible = getEligibleEmployees();
+        if (eligible.length < countToDraw) {
+            alert(`候選人不足！\n目前可抽人數：${eligible.length} 人\n本輪需抽出：${countToDraw} 人\n請檢查是否所有人均已中獎。`);
+            soundManager.stop('rolling');
+            return;
+        }
+
+        setPhase('countdown');
+        setCountdown(countdownDuration);
+        onClearAI();
+        soundManager.play('click');
+        soundManager.play('countdown', true);
+
+        let count = countdownDuration;
+        const timer = setInterval(() => {
+            count--;
+            setCountdown(count);
+            if (count === 0) {
+                clearInterval(timer);
+                startRollingInternal();
+            }
+        }, 1000);
+    }, [phase, getEligibleEmployees, getCountToDraw, onClearAI, countdownDuration, startRollingInternal]);
+
+    // Join Phase Animation
+    useEffect(() => {
+        let interval: ReturnType<typeof setInterval>;
+        if (phase === 'join' && employees.length > 0) {
+            interval = setInterval(() => {
+                const randomEmp = employees[Math.floor(Math.random() * employees.length)];
+                const newJoiner: Joiner = {
+                    id: Date.now().toString() + Math.random(),
+                    name: randomEmp.name,
+                    x: Math.random() * 80 + 10,
+                    animationDuration: Math.random() * 3 + 2,
+                };
+                setJoiners(prev => [...prev.slice(-15), newJoiner]);
+                setParticipantCount(prev => prev + 1);
+                soundManager.play('join');
+            }, 400);
+        }
+        return () => clearInterval(interval);
+    }, [phase, employees]);
+
+    // Auto-start rolling when entering rolling phase
+    useEffect(() => {
+        if (phase === 'rolling') {
+            startRolling();
+        }
+        return () => {
+            if (rollingIntervalRef.current) {
+                clearInterval(rollingIntervalRef.current);
+            }
+        };
+    }, [phase, startRolling]);
+
+    // Batch Reveal Auto-progression
+    useEffect(() => {
+        let timer: ReturnType<typeof setTimeout>;
+        if (phase === 'batch_reveal' && batchRevealedCount < currentBatchWinners.length) {
+            timer = setTimeout(() => {
+                setBatchRevealedCount(prev => prev + 1);
+            }, DEFAULT_CONFIG.batchRevealDelayMs);
+        }
+        return () => clearTimeout(timer);
+    }, [phase, batchRevealedCount, currentBatchWinners]);
 
     return {
         phase,
