@@ -32,7 +32,7 @@ export interface UseLotteryReturn extends UseEventBrandingReturn, Omit<UseAIComm
     currentRollingName: string;
     countdown: number;
     batchRevealedCount: number;
-    currentBatchWinners: Employee[];
+    currentBatchWinners: Winner[];
     participantCount: number;
     joiners: Joiner[];
     soundEnabled: boolean;
@@ -85,7 +85,7 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
     const [currentRollingName, setCurrentRollingName] = useState('準備好運');
     const [countdown, setCountdown] = useState(DEFAULT_CONFIG.countdownSeconds);
     const [batchRevealedCount, setBatchRevealedCount] = useState(0);
-    const [currentBatchWinners, setCurrentBatchWinners] = useState<Employee[]>([]);
+    const [currentBatchWinners, setCurrentBatchWinners] = useState<Winner[]>([]);
     const [participantCount, setParticipantCount] = useState(0);
     const [joiners, setJoiners] = useState<Joiner[]>([]);
     const [soundEnabled, setSoundEnabled] = useState(true);
@@ -278,7 +278,7 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
         setWinners(prev => [...prev, ...winnerRecords]);
 
         if (countToDraw > 1) {
-            setCurrentBatchWinners(newWinners);
+            setCurrentBatchWinners(winnerRecords);
             setBatchRevealedCount(0);
             setPhase('batch_reveal');
         } else {
