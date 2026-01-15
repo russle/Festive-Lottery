@@ -335,9 +335,8 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
     const updatePrizes = useCallback((newPrizes: Prize[]) => {
         setPrizes(newPrizes);
         savePrizes(newPrizes);
-        setWinners([]);
-        setCurrentPrizeIndex(0);
-        setPhase('standby');
+        // 不自動重置中獎記錄，允許新增獎項時保留已抽獎結果
+        // 如果需要重置，用戶可以手動使用 resetAll() 或 resetWinners()
     }, []);
 
     const resetEmployees = useCallback(() => {
