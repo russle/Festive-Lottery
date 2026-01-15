@@ -43,7 +43,12 @@ class SoundManager {
 
     /** 背景音樂控制 */
     setBGM(source: string | File | Blob) {
+        let wasPlaying = false;
+        let currentTime = 0;
+
         if (this.bgm) {
+            wasPlaying = !this.bgm.paused;
+            currentTime = this.bgm.currentTime;
             this.bgm.pause();
             this.bgm = null;
         }
@@ -52,6 +57,12 @@ class SoundManager {
         this.bgm = new Audio(url);
         this.bgm.loop = true;
         this.bgm.volume = this.bgmVolume;
+
+        // 如果之前在播放，恢復播放
+        if (wasPlaying && this.bgmEnabled) {
+            this.bgm.currentTime = currentTime;
+            this.playBGM();
+        }
     }
 
     playBGM() {
