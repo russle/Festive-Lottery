@@ -24,7 +24,7 @@ export const BatchRevealPhase: React.FC<BatchRevealPhaseProps> = ({
                 ✦ {prize.name} 得獎名單 ✦
             </h2>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="flex flex-wrap justify-center gap-6">
                 {batchWinners.map((winner, idx) => (
                     <div
                         key={winner.id}
