@@ -99,7 +99,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
                     {/* 重抽按鈕 */}
                     <button
-                        onClick={onResetCurrentPrize}
+                        onClick={() => {
+                            if (window.confirm('確定要重抽此獎嗎？\n這將會清除目前獎項的所有中獎名單！')) {
+                                onResetCurrentPrize();
+                            }
+                        }}
                         className="w-full border border-red-800 text-red-400 text-xs py-2 rounded hover:bg-red-900/30 transition-colors"
                     >
                         重抽此獎

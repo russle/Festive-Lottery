@@ -456,8 +456,12 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            if (window.confirm('確定要清除所有資料並重置系統嗎？此動作無法復原。')) {
-                                onResetAll();
+                            // 第一道確認
+                            if (window.confirm('⚠️ 嚴重警告 ⚠️\n\n確定要重置系統資料嗎？\n\n這將會清除：\n1. 所有中獎名單\n2. 所有獎項設定\n3. 所有員工資料\n\n此動作【無法復原】！')) {
+                                // 第二道確認
+                                if (window.confirm('再次確認：\n\n您真的確定要刪除所有資料重新開始嗎？')) {
+                                    onResetAll();
+                                }
                             }
                         }}
                         className="bg-red-900/40 hover:bg-red-800 text-red-200 text-xs px-4 py-2 rounded border border-red-500/30 transition-colors"
