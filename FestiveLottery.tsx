@@ -52,7 +52,7 @@ export default function FestiveLottery() {
           <h1 className="text-amber-400/90 text-2xl md:text-3xl tracking-[0.15em] font-bold uppercase animate-tracking-in-expand whitespace-nowrap">
             {lottery.eventTitle}
           </h1>
-          <p className="text-amber-200/70 text-sm md:text-base mt-1 tracking-[0.3em] font-medium">
+          <p className="text-amber-200/70 text-base md:text-xl mt-2 tracking-[0.3em] font-medium">
             {lottery.eventSubtitle}
           </p>
         </div>
