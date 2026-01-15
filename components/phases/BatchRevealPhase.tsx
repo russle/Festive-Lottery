@@ -26,7 +26,8 @@ export const BatchRevealPhase: React.FC<BatchRevealPhaseProps> = ({ prize, batch
                     <div
                         key={`${winner.employee.id}-${idx}`}
                         className={`
-              relative bg-red-900/40 border-2 border-amber-500/40 p-10 rounded-2xl flex flex-col items-center justify-center min-h-[240px] min-w-[260px] overflow-hidden group
+              relative bg-red-900/40 border-2 border-amber-500/40 p-10 rounded-2xl flex flex-col items-center justify-center min-h-[240px] overflow-hidden group
+              w-full sm:w-[calc(50%-2rem)] md:w-[calc(33.33%-2rem)] xl:w-[calc(20%-2rem)]
               transition-all duration-700 transform
               ${idx < revealedCount ? 'opacity-100 scale-100 translate-y-0 shadow-2xl' : 'opacity-0 scale-90 translate-y-10'}
             `}
