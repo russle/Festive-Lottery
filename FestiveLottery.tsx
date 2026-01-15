@@ -36,19 +36,23 @@ export default function FestiveLottery() {
       <OrnamentCorner position="bottom-right" />
 
       {/* 活動標題與自定義 Logo */}
-      <div className="absolute top-8 left-8 flex items-center gap-6 z-10 pointer-events-none">
+      {/* 活動標題與自定義 Logo */}
+      <div className="absolute top-8 left-8 flex items-center gap-4 md:gap-6 z-10 pointer-events-none">
         {lottery.customLogo && (
-          <img
-            src={lottery.customLogo}
-            alt="Event Logo"
-            className="h-20 w-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] animate-fade-in"
-          />
+          <div className="relative group">
+            <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-md animate-pulse" />
+            <img
+              src={lottery.customLogo}
+              alt="Event Logo"
+              className="relative h-16 w-16 md:h-20 md:w-20 rounded-full object-cover border-2 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)] animate-fade-in"
+            />
+          </div>
         )}
-        <div className="flex flex-col items-start">
-          <h1 className="text-amber-500/90 text-xl md:text-2xl tracking-[0.5em] font-bold uppercase animate-tracking-in-expand drop-shadow-sm whitespace-nowrap">
+        <div className="flex flex-col items-start drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+          <h1 className="text-amber-400/90 text-2xl md:text-3xl tracking-[0.15em] font-bold uppercase animate-tracking-in-expand whitespace-nowrap">
             {lottery.eventTitle}
           </h1>
-          <p className="text-amber-200/50 text-xs md:text-sm mt-1 tracking-[0.3em] font-light">
+          <p className="text-amber-200/70 text-sm md:text-base mt-1 tracking-[0.3em] font-medium">
             {lottery.eventSubtitle}
           </p>
         </div>
