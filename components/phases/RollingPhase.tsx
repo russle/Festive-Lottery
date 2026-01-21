@@ -9,7 +9,7 @@ export const RollingPhase: React.FC = () => {
         <div className="w-full max-w-5xl text-center">
             <div className="mb-8 flex justify-center gap-3 text-amber-400 font-bold tracking-[0.3em] animate-pulse items-center">
                 <Gem size={20} />
-                尋找幸運之星
+                獎項幸運得主
                 <Gem size={20} />
             </div>
 

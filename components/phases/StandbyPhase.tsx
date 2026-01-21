@@ -25,15 +25,21 @@ export const StandbyPhase: React.FC = () => {
             <div className="space-y-4 md:space-y-6 mb-6 md:mb-8 flex flex-col items-center">
                 <GoldenText text={currentPrize.name} size="text-5xl md:text-7xl lg:text-8xl" />
 
-                {currentPrize.type === 'batch' && (
-                    <div className="flex items-center justify-center gap-4 md:gap-6 mt-4 md:mt-6">
-                        <div className="h-[2px] w-8 md:w-16 bg-gradient-to-r from-transparent to-amber-500" />
-                        <p className="text-lg md:text-2xl text-amber-200 font-medium tracking-[0.2em] bg-red-950/30 px-4 py-1 rounded">
-                            即將抽出 {currentPrize.count} 位幸運兒
-                        </p>
-                        <div className="h-[2px] w-8 md:w-16 bg-gradient-to-l from-transparent to-amber-500" />
-                    </div>
-                )}
+                {currentPrize.type === 'batch' && (() => {
+                    const perRound = currentPrize.countPerRound ?? currentPrize.count;
+                    const text = perRound === 1
+                        ? '即將抽出下一位幸運兒'
+                        : `即將抽出 ${perRound} 位幸運兒`;
+                    return (
+                        <div className="flex items-center justify-center gap-4 md:gap-6 mt-4 md:mt-6">
+                            <div className="h-[2px] w-8 md:w-16 bg-gradient-to-r from-transparent to-amber-500" />
+                            <p className="text-lg md:text-2xl text-amber-200 font-medium tracking-[0.2em] bg-red-950/30 px-4 py-1 rounded">
+                                {text}
+                            </p>
+                            <div className="h-[2px] w-8 md:w-16 bg-gradient-to-l from-transparent to-amber-500" />
+                        </div>
+                    );
+                })()}
 
                 {/* 開始按鈕 */}
                 <button

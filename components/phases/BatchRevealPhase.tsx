@@ -11,8 +11,8 @@ export const BatchRevealPhase: React.FC = () => {
     if (!currentPrize) return null;
 
     return (
-        <div className="w-full max-w-7xl px-4 z-20">
-            <h2 className="text-center text-4xl font-bold text-amber-300 mb-12 tracking-widest drop-shadow-md">
+        <div className="w-full max-w-7xl px-4 z-20 mt-16">
+            <h2 className="text-center text-4xl font-bold text-amber-300 mb-8 tracking-widest drop-shadow-md">
                 ✦ {currentPrize.name} 得獎名單 ✦
             </h2>
 
