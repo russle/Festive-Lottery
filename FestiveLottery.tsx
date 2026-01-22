@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
-import { Settings, QrCode, X, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Settings, QrCode, X, ChevronRight, ChevronLeft, Github } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 // 匯入自訂 Hook
@@ -133,6 +133,19 @@ export default function FestiveLottery() {
       {/* Floating Action Buttons (QR Code & Settings) */}
       {!showControls && (
         <div className="fixed bottom-4 right-4 z-50 flex gap-4">
+          {/* GitHub Link - Only visible when Admin Panel is open */}
+          {showAdmin && (
+            <a
+              href="https://github.com/russle/Festive-Lottery"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-3 bg-gray-900/80 border border-gray-500/30 rounded-full text-gray-300 hover:text-white hover:bg-gray-800 hover:shadow-[0_0_15px_rgba(156,163,175,0.4)] transition-all transform hover:scale-105"
+              title="GitHub Repository"
+            >
+              <Github size={20} />
+            </a>
+          )}
+
           {/* Public QR Code Button */}
           <button
             onClick={() => setShowQrModal(true)}
