@@ -179,7 +179,13 @@ export const PrizeTab: React.FC = () => {
             {/* Pending Preview */}
             {pendingPrizes && (
                 <div className="space-y-4">
-                    <DataPreview type="prizes" prizes={pendingPrizes} />
+                    <DataPreview
+                        type="prizes"
+                        prizes={pendingPrizes}
+                        onUpdatePrize={(updated) => {
+                            setPendingPrizes(prev => prev?.map(p => p.id === updated.id ? updated : p) || null);
+                        }}
+                    />
                     <button
                         onClick={handleImportPrizes}
                         className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-3 rounded-xl transition-all"
@@ -208,7 +214,14 @@ export const PrizeTab: React.FC = () => {
                             清除獎項
                         </button>
                     </div>
-                    <DataPreview type="prizes" prizes={lottery.prizes} winners={lottery.winners} />
+                    <DataPreview
+                        type="prizes"
+                        prizes={lottery.prizes}
+                        winners={lottery.winners}
+                        onUpdatePrize={(updated) => {
+                            lottery.updatePrizes(lottery.prizes.map(p => p.id === updated.id ? updated : p));
+                        }}
+                    />
                 </div>
             )}
         </>

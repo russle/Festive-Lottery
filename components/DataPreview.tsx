@@ -1,7 +1,6 @@
-// 資料預覽表格元件 (含分頁功能)
 import { useState } from 'react';
-import { Users, Gift, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Employee, Prize, Winner } from '../types';
+import { Users, Gift, CheckCircle2, ChevronLeft, ChevronRight, Edit2, Save, X } from 'lucide-react';
+import type { Prize, Employee, Winner } from '../types';
 
 interface DataPreviewProps {
     type: 'employees' | 'prizes';
@@ -9,6 +8,7 @@ interface DataPreviewProps {
     prizes?: Prize[];
     winners?: Winner[];
     pageSize?: number;
+    onUpdatePrize?: (prize: Prize) => void;
 }
 
 export const DataPreview: React.FC<DataPreviewProps> = ({
@@ -17,8 +17,11 @@ export const DataPreview: React.FC<DataPreviewProps> = ({
     prizes = [],
     winners = [],
     pageSize = 20,
+    onUpdatePrize,
 }) => {
     const [currentPage, setCurrentPage] = useState(1);
+    const [editingPrizeId, setEditingPrizeId] = useState<number | null>(null);
+    const [editValues, setEditValues] = useState<{ count: number; countPerRound: number }>({ count: 0, countPerRound: 0 });
 
     if (type === 'employees' && employees.length === 0) return null;
     if (type === 'prizes' && prizes.length === 0) return null;
@@ -33,6 +36,29 @@ export const DataPreview: React.FC<DataPreviewProps> = ({
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
         }
+    };
+
+    const handleStartEdit = (prize: Prize) => {
+        setEditingPrizeId(prize.id);
+        setEditValues({
+            count: prize.count,
+            countPerRound: prize.countPerRound || 1
+        });
+    };
+
+    const handleSaveEdit = (prize: Prize) => {
+        if (onUpdatePrize) {
+            onUpdatePrize({
+                ...prize,
+                count: editValues.count,
+                countPerRound: Math.min(editValues.countPerRound, editValues.count, 12)
+            });
+        }
+        setEditingPrizeId(null);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingPrizeId(null);
     };
 
     return (
@@ -74,9 +100,9 @@ export const DataPreview: React.FC<DataPreviewProps> = ({
                                     <>
                                         <th className="px-4 py-2 text-left text-amber-300">圖示</th>
                                         <th className="px-4 py-2 text-left text-amber-300">獎品名稱</th>
-                                        <th className="px-4 py-2 text-center text-amber-300">進度</th>
-                                        <th className="px-4 py-2 text-center text-amber-300">每輪</th>
-                                        <th className="px-4 py-2 text-center text-amber-300">狀態</th>
+                                        <th className="px-4 py-2 text-center text-amber-300">進度/總量</th>
+                                        <th className="px-4 py-2 text-center text-amber-300">每輪人數</th>
+                                        <th className="px-4 py-2 text-center text-amber-300">操作/狀態</th>
                                     </>
                                 )}
                             </tr>
@@ -95,6 +121,7 @@ export const DataPreview: React.FC<DataPreviewProps> = ({
                                 (displayData as Prize[]).map((prize, i) => {
                                     const prizeWinners = winners.filter(w => w.prizeId === prize.id);
                                     const isFinished = prizeWinners.length >= prize.count;
+                                    const isEditing = editingPrizeId === prize.id;
 
                                     return (
                                         <tr key={prize.id} className={i % 2 === 0 ? 'bg-black/10' : ''}>
@@ -103,19 +130,72 @@ export const DataPreview: React.FC<DataPreviewProps> = ({
                                                 {prize.name}
                                             </td>
                                             <td className="px-4 py-2 text-center">
-                                                <span className={isFinished ? 'text-green-400 font-bold' : 'text-amber-300'}>
-                                                    {prizeWinners.length} / {prize.count}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-2 text-center text-amber-100/70">{prize.countPerRound}</td>
-                                            <td className="px-4 py-2 text-center">
-                                                {isFinished ? (
-                                                    <span className="flex items-center justify-center gap-1 text-green-400 text-xs font-bold bg-green-500/20 px-2 py-1 rounded">
-                                                        <CheckCircle2 size={12} />
-                                                        已抽完
-                                                    </span>
+                                                {isEditing ? (
+                                                    <div className="flex items-center justify-center gap-1">
+                                                        <span className="text-amber-500/50">{prizeWinners.length} /</span>
+                                                        <input
+                                                            type="number"
+                                                            value={editValues.count}
+                                                            onChange={(e) => setEditValues(prev => ({ ...prev, count: parseInt(e.target.value) || 0 }))}
+                                                            className="w-16 bg-black/40 border border-amber-500/30 rounded px-1 py-0.5 text-center text-white focus:outline-none focus:border-amber-500"
+                                                        />
+                                                    </div>
                                                 ) : (
-                                                    <span className="text-amber-500/40 text-xs italic">進行中</span>
+                                                    <span className={isFinished ? 'text-green-400 font-bold' : 'text-amber-300'}>
+                                                        {prizeWinners.length} / {prize.count}
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-2 text-center text-amber-100/70">
+                                                {isEditing ? (
+                                                    <input
+                                                        type="number"
+                                                        max={12}
+                                                        min={1}
+                                                        value={editValues.countPerRound}
+                                                        onChange={(e) => setEditValues(prev => ({ ...prev, countPerRound: parseInt(e.target.value) || 1 }))}
+                                                        className="w-14 bg-black/40 border border-amber-500/30 rounded px-1 py-0.5 text-center text-white focus:outline-none focus:border-amber-500"
+                                                    />
+                                                ) : (
+                                                    prize.countPerRound
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-2 text-center group">
+                                                {isEditing ? (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <button
+                                                            onClick={() => handleSaveEdit(prize)}
+                                                            className="p-1 text-green-400 hover:bg-green-500/20 rounded-full transition-colors"
+                                                            title="儲存"
+                                                        >
+                                                            <Save size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={handleCancelEdit}
+                                                            className="p-1 text-red-400 hover:bg-red-500/20 rounded-full transition-colors"
+                                                            title="取消"
+                                                        >
+                                                            <X size={16} />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        {isFinished ? (
+                                                            <span className="flex items-center justify-center gap-1 text-green-400 text-xs font-bold bg-green-500/20 px-2 py-1 rounded">
+                                                                <CheckCircle2 size={12} />
+                                                                已完成
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-amber-500/40 text-xs italic">進行中</span>
+                                                        )}
+                                                        <button
+                                                            onClick={() => handleStartEdit(prize)}
+                                                            className="p-1 text-amber-400/0 group-hover:text-amber-400/60 hover:text-amber-400 hover:bg-amber-500/10 rounded transition-all"
+                                                            title="編輯獎項"
+                                                        >
+                                                            <Edit2 size={14} />
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </td>
                                         </tr>
@@ -167,8 +247,8 @@ export const DataPreview: React.FC<DataPreviewProps> = ({
                                             key={pageNum}
                                             onClick={() => goToPage(pageNum)}
                                             className={`w-7 h-7 text-xs rounded transition-colors ${currentPage === pageNum
-                                                    ? 'bg-amber-500 text-white font-bold'
-                                                    : 'text-amber-400/60 hover:text-amber-300 hover:bg-amber-500/10'
+                                                ? 'bg-amber-500 text-white font-bold'
+                                                : 'text-amber-400/60 hover:text-amber-300 hover:bg-amber-500/10'
                                                 }`}
                                         >
                                             {pageNum}

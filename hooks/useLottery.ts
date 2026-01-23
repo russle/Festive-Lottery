@@ -91,7 +91,7 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
         if (remaining <= 0) return 0;
 
         const target = prizeManager.currentPrize!.countPerRound || (prizeManager.currentPrize!.type === 'batch' ? prizeManager.currentPrize!.count : 1);
-        return Math.min(target, remaining, 10);
+        return Math.min(target, remaining, 12);
     }, [prizeManager.currentPrize, prizeManager.winners]);
 
     const rolling = useRollingLogic(
