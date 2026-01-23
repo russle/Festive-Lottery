@@ -10,13 +10,16 @@ export const BatchRevealPhase: React.FC = () => {
 
     if (!currentPrize) return null;
 
+    const winnerCount = currentBatchWinners.length;
+    const gridCols = winnerCount === 10 ? 'xl:grid-cols-5' : 'xl:grid-cols-6';
+
     return (
         <div className="w-full max-w-7xl px-4 z-20 mt-16">
             <h2 className="text-center text-4xl font-bold text-amber-300 mb-8 tracking-widest drop-shadow-md">
                 ✦ {currentPrize.name} 得獎名單 ✦
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 xl:gap-4 py-4 px-2">
+            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${gridCols} gap-6 xl:gap-4 py-4 px-2`}>
                 {currentBatchWinners.map((winner, idx) => (
                     <div
                         key={`${winner.employee.id}-${idx}`}
