@@ -16,7 +16,7 @@ export const BatchRevealPhase: React.FC = () => {
                 ✦ {currentPrize.name} 得獎名單 ✦
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 xl:gap-4 overflow-y-auto max-h-[70vh] py-4 px-2 custom-scrollbar">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 xl:gap-4 py-4 px-2">
                 {currentBatchWinners.map((winner, idx) => (
                     <div
                         key={`${winner.employee.id}-${idx}`}
