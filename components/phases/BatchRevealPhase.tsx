@@ -16,22 +16,21 @@ export const BatchRevealPhase: React.FC = () => {
                 ✦ {currentPrize.name} 得獎名單 ✦
             </h2>
 
-            <div className="flex flex-wrap justify-center gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 xl:gap-4 overflow-y-auto max-h-[70vh] py-4 px-2 custom-scrollbar">
                 {currentBatchWinners.map((winner, idx) => (
                     <div
                         key={`${winner.employee.id}-${idx}`}
                         className={`
-              relative bg-red-900/40 border-2 border-amber-500/40 p-10 rounded-2xl flex flex-col items-center justify-center min-h-[240px] overflow-hidden group
-              w-full sm:w-[calc(50%-2rem)] md:w-[calc(33.33%-2rem)] xl:w-[calc(20%-2rem)]
-              transition-all duration-700 transform
-              ${idx < batchRevealedCount ? 'opacity-100 scale-100 translate-y-0 shadow-2xl' : 'opacity-0 scale-90 translate-y-10'}
-            `}
+                            relative bg-red-900/40 border-2 border-amber-500/40 p-6 md:p-8 rounded-2xl flex flex-col items-center justify-center min-h-[180px] md:min-h-[220px] overflow-hidden group
+                            transition-all duration-700 transform
+                            ${idx < batchRevealedCount ? 'opacity-100 scale-100 translate-y-0 shadow-2xl' : 'opacity-0 scale-90 translate-y-10'}
+                        `}
                     >
                         <div className="absolute inset-0 bg-gradient-to-t from-red-900/80 to-transparent" />
-                        <div className={`font-bold text-white mb-3 z-10 whitespace-nowrap ${winner.employee.name.length > 3 ? 'text-5xl' : 'text-6xl'}`}>{winner.employee.name}</div>
-                        <div className="text-3xl text-amber-300 z-10 font-medium">{winner.employee.dept}</div>
-                        <div className="absolute top-3 right-3 text-amber-500/20">
-                            <Sparkles size={32} />
+                        <div className={`font-bold text-white mb-2 z-10 whitespace-nowrap ${winner.employee.name.length > 3 ? 'text-4xl' : 'text-5xl'}`}>{winner.employee.name}</div>
+                        <div className="text-xl md:text-2xl text-amber-300 z-10 font-medium">{winner.employee.dept}</div>
+                        <div className="absolute top-2 right-2 text-amber-500/10">
+                            <Sparkles size={24} />
                         </div>
                     </div>
                 ))}
