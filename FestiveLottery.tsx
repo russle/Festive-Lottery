@@ -27,6 +27,7 @@ export default function FestiveLottery() {
   const [showControls, setShowControls] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showControllerQr, setShowControllerQr] = useState(false);
   const lottery = useLotteryContext();
 
   const currentPrizeWinnersCount = lottery.currentPrize
@@ -127,6 +128,7 @@ export default function FestiveLottery() {
           show={showControls}
           onClose={() => setShowControls(false)}
           onOpenAdmin={() => setShowAdmin(true)}
+          onShowController={() => setShowControllerQr(true)}
         />
       )}
 
@@ -162,6 +164,47 @@ export default function FestiveLottery() {
           >
             <Settings size={20} />
           </button>
+        </div>
+      )}
+
+      {/* 控制器 QR Code Modal */}
+      {showControllerQr && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative bg-[#1a050a] border border-amber-500/30 p-8 rounded-2xl shadow-[0_0_50px_rgba(245,158,11,0.3)] max-w-sm w-full text-center space-y-6">
+            <button
+              onClick={() => setShowControllerQr(false)}
+              className="absolute top-4 right-4 text-amber-300/50 hover:text-white transition-colors"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-100">
+                遠端控制
+              </h1>
+              <p className="text-amber-200/60 text-sm">
+                請用 iPad 掃描下方 QR Code<br />即可遠端控制此房間
+              </p>
+              {(() => {
+                const searchParams = new URLSearchParams(window.location.search);
+                const roomId = searchParams.get('room');
+                return roomId && (
+                  <div className="text-[10px] text-amber-500/40 font-mono tracking-widest mt-2 uppercase">
+                    ROOM: {roomId}
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="bg-white p-4 rounded-xl inline-block shadow-xl">
+              <QRCodeSVG
+                value={`${window.location.origin}/controller${window.location.search}`}
+                size={200}
+                level="Q"
+                includeMargin={true}
+              />
+            </div>
+          </div>
         </div>
       )}
 
