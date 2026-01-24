@@ -7,12 +7,14 @@ interface SettingsPanelProps {
     show: boolean;
     onClose: () => void;
     onOpenAdmin?: () => void;
+    onShowController?: () => void;
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     show,
     onClose,
     onOpenAdmin,
+    onShowController,
 }) => {
     const lottery = useLotteryContext();
 
@@ -40,6 +42,20 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         >
                             <Database size={14} />
                             📋 資料管理（上傳清單）
+                        </button>
+                    )}
+
+                    {/* iPad 遠端控制按鈕 */}
+                    {onShowController && (
+                        <button
+                            onClick={() => {
+                                onShowController?.();
+                                onClose();
+                            }}
+                            className="w-full bg-gradient-to-r from-amber-600 to-orange-700 text-white text-xs font-bold py-2 rounded flex items-center justify-center gap-2 hover:shadow-lg transition-all"
+                        >
+                            <Music size={14} />
+                            📱 iPad 遠端控制 QR
                         </button>
                     )}
 
