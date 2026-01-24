@@ -6,6 +6,8 @@ import FestiveLottery from '../FestiveLottery';
 import CheckPage from '../components/CheckPage';
 import { ErrorBoundary } from '../components';
 import { LotteryProvider } from '../contexts/LotteryContext';
+import Controller from './Controller';
+import RemoteControlListener from '../components/RemoteControlListener';
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -13,8 +15,14 @@ createRoot(document.getElementById('root')!).render(
             <LotteryProvider>
                 <BrowserRouter>
                     <Routes>
-                        <Route path="/" element={<FestiveLottery />} />
+                        <Route path="/" element={
+                            <>
+                                <RemoteControlListener />
+                                <FestiveLottery />
+                            </>
+                        } />
                         <Route path="/check" element={<CheckPage />} />
+                        <Route path="/controller" element={<Controller />} />
                     </Routes>
                 </BrowserRouter>
             </LotteryProvider>
