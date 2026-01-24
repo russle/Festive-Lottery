@@ -7,7 +7,13 @@ const RemoteControlListener = () => {
     const lottery = useLotteryContext();
 
     useEffect(() => {
-        const commandRef = ref(db, 'lottery_control/command');
+        // 從 URL 參數取得房間 ID，預設為 'default'
+        const searchParams = new URLSearchParams(window.location.search);
+        const roomId = searchParams.get('room') || 'default';
+        const commandPath = `lottery_control/${roomId}/command`;
+        const commandRef = ref(db, commandPath);
+
+        console.log(`[RemoteControl] Listening on room: ${roomId}`);
 
         // 監聽指令變化
         const unsubscribe = onValue(commandRef, (snapshot) => {

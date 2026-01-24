@@ -6,10 +6,15 @@ import { Play, Square, FastForward, Settings } from 'lucide-react';
 const Controller = () => {
     const [status, setStatus] = useState<string>('準備就緒');
 
+    // 從 URL 取得房號
+    const searchParams = new URLSearchParams(window.location.search);
+    const roomId = searchParams.get('room') || 'default';
+
     const sendCommand = async (command: string, label: string) => {
         try {
             setStatus(`正在傳送: ${label}...`);
-            await set(ref(db, 'lottery_control/command'), command);
+            const commandPath = `lottery_control/${roomId}/command`;
+            await set(ref(db, commandPath), command);
             setStatus(`指令已傳送: ${label}`);
             setTimeout(() => setStatus('準備就緒'), 2000);
         } catch (error) {
@@ -24,6 +29,9 @@ const Controller = () => {
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-300 to-yellow-100 mb-2">
                     抽獎控制器 (iPad)
                 </h1>
+                <div className="text-amber-200/40 text-xs mb-4 uppercase tracking-widest">
+                    ROOM: {roomId}
+                </div>
                 <div className={`text-sm ${status.includes('失敗') ? 'text-red-400' : 'text-amber-400/60'}`}>
                     狀態: {status}
                 </div>
