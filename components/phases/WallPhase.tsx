@@ -7,7 +7,7 @@ export const WallPhase: React.FC = () => {
             {/* 背景美圖 */}
             <div className="w-full max-w-5xl h-full flex items-center justify-center">
                 <img
-                    src="/Image_bg.png"
+                    src="/image_bg.png"
                     alt="End of Event"
                     className="max-w-full max-h-full object-contain drop-shadow-[0_0_30px_rgba(245,158,11,0.3)]"
                 />
