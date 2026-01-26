@@ -9,7 +9,7 @@ export const WallPhase: React.FC = () => {
                 <img
                     src="/image_bg.png"
                     alt="End of Event"
-                    className="max-w-full max-h-full object-contain drop-shadow-[0_0_30px_rgba(245,158,11,0.3)]"
+                    className="max-w-full max-h-full object-contain drop-shadow-[0_0_30px_rgba(245,158,11,0.3)] transform translate-y-12"
                 />
             </div>
 
