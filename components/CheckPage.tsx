@@ -38,7 +38,7 @@ export const CheckPage: React.FC = () => {
 
     const handleCheck = async () => {
         if (!employeeId.trim()) {
-            setError('請輸入員工編號');
+            setError('請輸入員工編號或姓名');
             return;
         }
 
@@ -80,7 +80,7 @@ export const CheckPage: React.FC = () => {
                 {/* 標題 */}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-fuchsia-200 mb-2">🎊 中獎查詢</h1>
-                    <p className="text-fuchsia-300/70 text-sm">輸入您的員工編號查詢中獎結果</p>
+                    <p className="text-fuchsia-300/70 text-sm">輸入您的員工編號或姓名查詢中獎結果</p>
                 </div>
 
                 {/* 查詢表單 */}
@@ -91,8 +91,8 @@ export const CheckPage: React.FC = () => {
                             value={employeeId}
                             onChange={(e) => setEmployeeId(e.target.value)}
                             onKeyPress={handleKeyPress}
-                            placeholder="請輸入員工編號"
-                            className="flex-1 bg-black/40 border border-fuchsia-500/30 rounded-xl px-4 py-3 text-fuchsia-100 placeholder:text-fuchsia-700 focus:outline-none focus:border-fuchsia-400 text-center text-lg"
+                            placeholder="輸入編號或姓名"
+                            className="flex-1 bg-black/40 border border-fuchsia-500/30 rounded-xl px-4 py-3 text-fuchsia-100 placeholder:text-fuchsia-700/50 focus:outline-none focus:border-fuchsia-400 text-center text-lg"
                             disabled={isLoading}
                         />
                         <button

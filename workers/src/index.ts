@@ -215,9 +215,9 @@ export default {
                     FROM winners w
                     JOIN prizes p ON w.prize_id = p.id AND w.host_id = p.host_id
                     JOIN employees e ON w.employee_id = e.id AND w.host_id = e.host_id
-                    WHERE w.employee_id = ? AND w.host_id = ?
+                    WHERE (w.employee_id = ? OR e.name = ?) AND w.host_id = ?
                     ORDER BY w.timestamp DESC
-                `).bind(employeeId, queryHostId).all();
+                `).bind(employeeId, employeeId, queryHostId).all();
 
                 console.log(`[Check] Found ${results.length} records`);
 

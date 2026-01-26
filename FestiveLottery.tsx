@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 
 // 匯入自訂 Hook
 import { useLotteryContext } from './contexts/LotteryContext';
-import { loadApiUrl } from './utils/storage';
+import { loadApiUrl, loadHostId } from './utils/storage';
 
 // 匯入元件
 import {
@@ -230,7 +230,7 @@ export default function FestiveLottery() {
 
             <div className="bg-white p-4 rounded-xl inline-block shadow-xl">
               <QRCodeSVG
-                value={`${window.location.origin}/check?api=${encodeURIComponent(loadApiUrl() || '')}`}
+                value={`${window.location.origin}/check?api=${encodeURIComponent(loadApiUrl() || '')}&host=${encodeURIComponent(loadHostId())}`}
                 size={200}
                 level="Q"
                 includeMargin={true}
