@@ -10,21 +10,18 @@ export const BatchRevealPhase: React.FC = () => {
 
     if (!currentPrize) return null;
 
-    const winnerCount = currentBatchWinners.length;
-    const gridCols = winnerCount === 10 ? 'xl:grid-cols-5' : 'xl:grid-cols-6';
-
     return (
         <div className="w-full max-w-7xl px-4 z-20 mt-16">
             <h2 className="text-center text-4xl font-bold text-amber-300 mb-8 tracking-widest drop-shadow-md">
                 ✦ {currentPrize.name} 得獎名單 ✦
             </h2>
 
-            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${gridCols} gap-6 xl:gap-4 py-4 px-2`}>
+            <div className="flex flex-wrap justify-center gap-6 xl:gap-4 py-4 px-2">
                 {currentBatchWinners.map((winner, idx) => (
                     <div
                         key={`${winner.employee.id}-${idx}`}
                         className={`
-                            relative bg-red-900/40 border-2 border-amber-500/40 p-6 md:p-8 rounded-2xl flex flex-col items-center justify-center min-h-[180px] md:min-h-[220px] overflow-hidden group
+                            relative bg-red-900/40 border-2 border-amber-500/40 p-6 md:p-8 rounded-2xl flex flex-col items-center justify-center min-h-[180px] md:min-h-[220px] w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.33%-1.5rem)] xl:w-[calc(20%-1rem)] max-w-[280px] overflow-hidden group
                             transition-all duration-700 transform
                             ${idx < batchRevealedCount ? 'opacity-100 scale-100 translate-y-0 shadow-2xl' : 'opacity-0 scale-90 translate-y-10'}
                         `}
