@@ -35,6 +35,7 @@ export interface UseLotteryReturn extends UseEventBrandingReturn, Omit<UseAIComm
     bgmEnabled: boolean;
     aiConfig: AIConfig;
     countdownDuration: number;
+    eligibleCount: number;
 
     // Actions
     setPhase: (phase: Phase) => void;
@@ -204,6 +205,7 @@ export const useLottery = (options: { enableRemote?: boolean } = {}): UseLottery
         soundEnabled,
         bgmEnabled,
         countdownDuration,
+        eligibleCount: getEligibleEmployees().length,
         aiConfig: ai.aiConfig,
         aiCommentary: ai.aiCommentary,
         isAiLoading: ai.isAiLoading,

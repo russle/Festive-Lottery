@@ -42,17 +42,25 @@ export const StandbyPhase: React.FC = () => {
                 })()}
 
                 {/* 開始按鈕 */}
-                <button
-                    onClick={lottery.startCountdown}
-                    className="group relative px-12 py-4 mt-6 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-bold text-xl rounded-full shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_40px_rgba(220,38,38,0.6)] transition-all transform hover:-translate-y-1 z-50"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="bg-white/20 rounded-full p-1">
-                            <Play size={16} fill="currentColor" />
+                <div className="flex flex-col items-center gap-4">
+                    <button
+                        onClick={lottery.startCountdown}
+                        className="group relative px-12 py-4 mt-6 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-bold text-xl rounded-full shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_40px_rgba(220,38,38,0.6)] transition-all transform hover:-translate-y-1 z-50"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="bg-white/20 rounded-full p-1">
+                                <Play size={16} fill="currentColor" />
+                            </div>
+                            我抽！
                         </div>
-                        我抽！
+                    </button>
+
+                    {/* 資格人數顯示 */}
+                    <div className="flex items-center gap-2 text-amber-500/60 text-sm font-medium tracking-widest bg-amber-500/5 px-4 py-1.5 rounded-full border border-amber-500/10 backdrop-blur-sm animate-fade-in">
+                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+                        目前抽獎池：{lottery.eligibleCount} 人
                     </div>
-                </button>
+                </div>
             </div>
 
             {/* AI 吉祥話區塊 */}

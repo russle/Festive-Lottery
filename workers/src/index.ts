@@ -174,6 +174,15 @@ export default {
                         return errorResponse('prizeId and employeeId are required');
                     }
 
+                    // Defensive check: Ensure employee hasn't won already
+                    const existing = await env.DB.prepare(
+                        'SELECT id FROM winners WHERE employee_id = ? AND host_id = ?'
+                    ).bind(employeeId, hostId).first();
+
+                    if (existing) {
+                        return errorResponse('Employee has already won a prize');
+                    }
+
                     await env.DB.prepare(
                         'INSERT INTO winners (prize_id, employee_id, host_id) VALUES (?, ?, ?)'
                     ).bind(prizeId, employeeId, hostId).run();
