@@ -4,6 +4,7 @@ import { Search, PartyPopper, Frown, ChevronDown, ChevronRight } from 'lucide-re
 import { loadApiUrl, saveApiUrl, loadHostId, saveHostId } from '../utils/storage';
 
 interface WinRecord {
+    prizeId: number;
     prizeName: string;
     prizeIcon: string;
     timestamp: string;
@@ -118,17 +119,19 @@ export const CheckPage: React.FC = () => {
         }));
     };
 
-    // 分組中獎名單
+    // 分組中獎名單 (以 prizeId 為 Key)
     const groupedWinners = allWinners.reduce((acc, record) => {
-        if (!acc[record.prizeName]) {
-            acc[record.prizeName] = {
+        const key = record.prizeId.toString();
+        if (!acc[key]) {
+            acc[key] = {
+                name: record.prizeName,
                 icon: record.prizeIcon,
                 winners: []
             };
         }
-        acc[record.prizeName].winners.push(record);
+        acc[key].winners.push(record);
         return acc;
-    }, {} as Record<string, { icon: string; winners: WinRecord[] }>);
+    }, {} as Record<string, { name: string; icon: string; winners: WinRecord[] }>);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-900 via-fuchsia-900 to-rose-900 flex items-center justify-center p-4">
@@ -240,17 +243,17 @@ export const CheckPage: React.FC = () => {
                                             const timeB = Math.min(...b.winners.map(w => new Date(w.timestamp.replace(' ', 'T') + 'Z').getTime()));
                                             return timeA - timeB;
                                         })
-                                        .map(([prizeName, { icon, winners }]) => {
-                                            const isExpanded = !!expandedPrizes[prizeName];
+                                        .map(([prizeId, { name, icon, winners }]) => {
+                                            const isExpanded = !!expandedPrizes[prizeId];
                                             return (
-                                                <div key={prizeName} className="space-y-2">
+                                                <div key={prizeId} className="space-y-2">
                                                     <button
-                                                        onClick={() => togglePrize(prizeName)}
+                                                        onClick={() => togglePrize(prizeId)}
                                                         className="w-full flex items-center justify-between gap-2 bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition-all text-left"
                                                     >
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-2xl">{icon}</span>
-                                                            <h3 className="font-bold text-fuchsia-200">{prizeName}</h3>
+                                                            <h3 className="font-bold text-fuchsia-200">{name}</h3>
                                                             <span className="text-xs bg-fuchsia-500/20 text-fuchsia-400 px-2 py-0.5 rounded-full">{winners.length} 人</span>
                                                         </div>
                                                         {isExpanded ? <ChevronDown size={18} className="text-fuchsia-500/50" /> : <ChevronRight size={18} className="text-fuchsia-500/50" />}
