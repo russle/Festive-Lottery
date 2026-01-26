@@ -234,38 +234,44 @@ export const CheckPage: React.FC = () => {
                                 </div>
                             ) : Object.keys(groupedWinners).length > 0 ? (
                                 <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                                    {Object.entries(groupedWinners).map(([prizeName, { icon, winners }]) => {
-                                        const isExpanded = !!expandedPrizes[prizeName];
-                                        return (
-                                            <div key={prizeName} className="space-y-2">
-                                                <button
-                                                    onClick={() => togglePrize(prizeName)}
-                                                    className="w-full flex items-center justify-between gap-2 bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition-all text-left"
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-2xl">{icon}</span>
-                                                        <h3 className="font-bold text-fuchsia-200">{prizeName}</h3>
-                                                        <span className="text-xs bg-fuchsia-500/20 text-fuchsia-400 px-2 py-0.5 rounded-full">{winners.length} 人</span>
-                                                    </div>
-                                                    {isExpanded ? <ChevronDown size={18} className="text-fuchsia-500/50" /> : <ChevronRight size={18} className="text-fuchsia-500/50" />}
-                                                </button>
+                                    {Object.entries(groupedWinners)
+                                        .sort(([, a], [, b]) => {
+                                            const timeA = Math.min(...a.winners.map(w => new Date(w.timestamp.replace(' ', 'T') + 'Z').getTime()));
+                                            const timeB = Math.min(...b.winners.map(w => new Date(w.timestamp.replace(' ', 'T') + 'Z').getTime()));
+                                            return timeA - timeB;
+                                        })
+                                        .map(([prizeName, { icon, winners }]) => {
+                                            const isExpanded = !!expandedPrizes[prizeName];
+                                            return (
+                                                <div key={prizeName} className="space-y-2">
+                                                    <button
+                                                        onClick={() => togglePrize(prizeName)}
+                                                        className="w-full flex items-center justify-between gap-2 bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition-all text-left"
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-2xl">{icon}</span>
+                                                            <h3 className="font-bold text-fuchsia-200">{prizeName}</h3>
+                                                            <span className="text-xs bg-fuchsia-500/20 text-fuchsia-400 px-2 py-0.5 rounded-full">{winners.length} 人</span>
+                                                        </div>
+                                                        {isExpanded ? <ChevronDown size={18} className="text-fuchsia-500/50" /> : <ChevronRight size={18} className="text-fuchsia-500/50" />}
+                                                    </button>
 
-                                                {isExpanded && (
-                                                    <div className="grid grid-cols-1 gap-2 pl-2 animate-fade-in">
-                                                        {winners.map((w, idx) => (
-                                                            <div key={idx} className="flex justify-between items-center bg-black/20 p-3 rounded-lg border border-white/5">
-                                                                <div>
-                                                                    <span className="text-fuchsia-100 font-medium">{w.employeeName}</span>
-                                                                    <span className="text-xs text-fuchsia-400/60 ml-2">{w.employeeDept}</span>
+                                                    {isExpanded && (
+                                                        <div className="grid grid-cols-1 gap-2 pl-2 animate-fade-in">
+                                                            {winners.map((w, idx) => (
+                                                                <div key={idx} className="flex justify-between items-center bg-black/20 p-3 rounded-lg border border-white/5">
+                                                                    <div>
+                                                                        <span className="text-fuchsia-100 font-medium">{w.employeeName}</span>
+                                                                        <span className="text-xs text-fuchsia-400/60 ml-2">{w.employeeDept}</span>
+                                                                    </div>
+                                                                    <span className="text-[10px] font-mono text-fuchsia-100/60">{w.employeeId}</span>
                                                                 </div>
-                                                                <span className="text-[10px] font-mono text-fuchsia-100/60">{w.employeeId}</span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                 </div>
                             ) : (
                                 <div className="text-center py-20">
