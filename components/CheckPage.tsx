@@ -1,6 +1,6 @@
 // 中獎查詢頁面 (手機用戶掃描 QR Code 後進入)
 import React, { useState } from 'react';
-import { Search, PartyPopper, Frown } from 'lucide-react';
+import { Search, PartyPopper, Frown, ChevronDown, ChevronRight } from 'lucide-react';
 import { loadApiUrl, saveApiUrl, loadHostId, saveHostId } from '../utils/storage';
 
 interface WinRecord {
@@ -24,6 +24,7 @@ export const CheckPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState<CheckResult | null>(null);
     const [allWinners, setAllWinners] = useState<WinRecord[]>([]);
+    const [expandedPrizes, setExpandedPrizes] = useState<Record<string, boolean>>({});
     const [error, setError] = useState('');
 
     // 解析網址中的 API URL 與 Host ID 參數
@@ -110,6 +111,13 @@ export const CheckPage: React.FC = () => {
         }
     };
 
+    const togglePrize = (prizeName: string) => {
+        setExpandedPrizes(prev => ({
+            ...prev,
+            [prizeName]: !prev[prizeName]
+        }));
+    };
+
     // 分組中獎名單
     const groupedWinners = allWinners.reduce((acc, record) => {
         if (!acc[record.prizeName]) {
@@ -127,7 +135,7 @@ export const CheckPage: React.FC = () => {
             <div className="w-full max-w-md my-8">
                 {/* 標題 */}
                 <div className="text-center mb-6">
-                    <h1 className="text-3xl font-bold text-fuchsia-200 mb-2">🎊 尾牙抽獎管理</h1>
+                    <h1 className="text-3xl font-bold text-fuchsia-200 mb-2">🎊 尾牙抽獎查詢</h1>
                     <p className="text-fuchsia-300/70 text-sm">即時查看您的中獎結果與完整名單</p>
                 </div>
 
@@ -226,26 +234,38 @@ export const CheckPage: React.FC = () => {
                                 </div>
                             ) : Object.keys(groupedWinners).length > 0 ? (
                                 <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                                    {Object.entries(groupedWinners).map(([prizeName, { icon, winners }]) => (
-                                        <div key={prizeName} className="space-y-3">
-                                            <div className="flex items-center gap-2 border-b border-fuchsia-500/20 pb-2">
-                                                <span className="text-2xl">{icon}</span>
-                                                <h3 className="font-bold text-fuchsia-200">{prizeName}</h3>
-                                                <span className="text-xs bg-fuchsia-500/20 text-fuchsia-400 px-2 py-0.5 rounded-full">{winners.length} 人</span>
-                                            </div>
-                                            <div className="grid grid-cols-1 gap-2">
-                                                {winners.map((w, idx) => (
-                                                    <div key={idx} className="flex justify-between items-center bg-white/5 p-3 rounded-lg border border-white/5">
-                                                        <div>
-                                                            <span className="text-fuchsia-100 font-medium">{w.employeeName}</span>
-                                                            <span className="text-xs text-fuchsia-400/60 ml-2">{w.employeeDept}</span>
-                                                        </div>
-                                                        <span className="text-[10px] font-mono text-fuchsia-500/40">{w.employeeId}</span>
+                                    {Object.entries(groupedWinners).map(([prizeName, { icon, winners }]) => {
+                                        const isExpanded = !!expandedPrizes[prizeName];
+                                        return (
+                                            <div key={prizeName} className="space-y-2">
+                                                <button
+                                                    onClick={() => togglePrize(prizeName)}
+                                                    className="w-full flex items-center justify-between gap-2 bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition-all text-left"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-2xl">{icon}</span>
+                                                        <h3 className="font-bold text-fuchsia-200">{prizeName}</h3>
+                                                        <span className="text-xs bg-fuchsia-500/20 text-fuchsia-400 px-2 py-0.5 rounded-full">{winners.length} 人</span>
                                                     </div>
-                                                ))}
+                                                    {isExpanded ? <ChevronDown size={18} className="text-fuchsia-500/50" /> : <ChevronRight size={18} className="text-fuchsia-500/50" />}
+                                                </button>
+
+                                                {isExpanded && (
+                                                    <div className="grid grid-cols-1 gap-2 pl-2 animate-fade-in">
+                                                        {winners.map((w, idx) => (
+                                                            <div key={idx} className="flex justify-between items-center bg-black/20 p-3 rounded-lg border border-white/5">
+                                                                <div>
+                                                                    <span className="text-fuchsia-100 font-medium">{w.employeeName}</span>
+                                                                    <span className="text-xs text-fuchsia-400/60 ml-2">{w.employeeDept}</span>
+                                                                </div>
+                                                                <span className="text-[10px] font-mono text-fuchsia-100/60">{w.employeeId}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <div className="text-center py-20">
