@@ -303,7 +303,7 @@ export const hybridLotteryAPI: LotteryAPI = {
         // 同時儲存到雲端和本地
         const cloudResult = await cloudLotteryAPI.saveWinners(winners);
         winners.forEach(w => addMockWinner(w)); // 本地也保存一份
-        return cloudResult.success ? cloudResult : { success: true };
+        return cloudResult;
     },
 
     async resetWinners() {
