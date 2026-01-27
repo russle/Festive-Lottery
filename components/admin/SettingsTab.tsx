@@ -44,8 +44,8 @@ export const SettingsTab: React.FC = () => {
             }
 
             await cloudLotteryAPI.resetWinners();
-            for (const winner of lottery.winners) {
-                await cloudLotteryAPI.saveWinner(winner);
+            if (lottery.winners.length > 0) {
+                await cloudLotteryAPI.saveWinners(lottery.winners);
             }
 
             setSyncStatus('success');

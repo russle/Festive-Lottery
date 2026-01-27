@@ -12,6 +12,7 @@ export interface LotteryAPI {
     getPrizes(): Promise<ApiResponse<Prize[]>>;
     getWinners(): Promise<ApiResponse<Winner[]>>;
     saveWinner(winner: Winner): Promise<ApiResponse<void>>;
+    saveWinners(winners: Winner[]): Promise<ApiResponse<void>>;
     resetWinners(): Promise<ApiResponse<void>>;
     resetEmployees(): Promise<ApiResponse<void>>;
     resetPrizes(): Promise<ApiResponse<void>>;
@@ -43,6 +44,12 @@ export const mockLotteryAPI: LotteryAPI = {
     async saveWinner(winner: Winner): Promise<ApiResponse<void>> {
         await simulateDelay();
         addMockWinner(winner);
+        return { success: true };
+    },
+
+    async saveWinners(winners: Winner[]): Promise<ApiResponse<void>> {
+        await simulateDelay();
+        winners.forEach(w => addMockWinner(w));
         return { success: true };
     },
 
@@ -138,6 +145,10 @@ export const cloudLotteryAPI: LotteryAPI = {
     },
 
     async saveWinner(winner: Winner): Promise<ApiResponse<void>> {
+        return this.saveWinners([winner]);
+    },
+
+    async saveWinners(winners: Winner[]): Promise<ApiResponse<void>> {
         try {
             const url = getCloudApiUrl();
             if (!url) return { success: false, error: 'Cloud API URL not configured' };
@@ -148,14 +159,16 @@ export const cloudLotteryAPI: LotteryAPI = {
                     'X-Host-ID': loadHostId()
                 },
                 body: JSON.stringify({
-                    prizeId: winner.prizeId,
-                    employeeId: winner.employee.id,
+                    winners: winners.map(w => ({
+                        prizeId: w.prizeId,
+                        employeeId: w.employee.id,
+                    }))
                 }),
             });
             const json = await res.json();
             return { success: json.success, error: json.error };
         } catch (error) {
-            console.error('[Cloud API] saveWinner failed:', error);
+            console.error('[Cloud API] saveWinners failed:', error)
             return { success: false, error: String(error) };
         }
     },
@@ -283,9 +296,13 @@ export const hybridLotteryAPI: LotteryAPI = {
     },
 
     async saveWinner(winner: Winner) {
+        return this.saveWinners([winner]);
+    },
+
+    async saveWinners(winners: Winner[]) {
         // 同時儲存到雲端和本地
-        const cloudResult = await cloudLotteryAPI.saveWinner(winner);
-        addMockWinner(winner); // 本地也保存一份
+        const cloudResult = await cloudLotteryAPI.saveWinners(winners);
+        winners.forEach(w => addMockWinner(w)); // 本地也保存一份
         return cloudResult.success ? cloudResult : { success: true };
     },
 

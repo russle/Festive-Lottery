@@ -13,12 +13,10 @@ export const useCloudSync = (winners: Winner[]) => {
             const newWinners = winners.slice(lastSyncedCount.current);
             if (newWinners.length > 0) {
                 console.log(`[Auto-Sync] Syncing ${newWinners.length} new winner(s) to cloud...`);
-                newWinners.forEach(winner => {
-                    lotteryAPI.saveWinner(winner).then(res => {
-                        if (res.success) {
-                            console.log(`[Auto-Sync] Winner ${winner.employee.name} synced successfully`);
-                        }
-                    });
+                lotteryAPI.saveWinners(newWinners).then(res => {
+                    if (res.success) {
+                        console.log(`[Auto-Sync] ${newWinners.length} winners synced successfully`);
+                    }
                 });
                 lastSyncedCount.current = winners.length;
             }

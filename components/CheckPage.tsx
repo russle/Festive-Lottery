@@ -167,7 +167,7 @@ export const CheckPage: React.FC = () => {
                                     value={employeeId}
                                     onChange={(e) => setEmployeeId(e.target.value)}
                                     onKeyPress={handleKeyPress}
-                                    placeholder="輸入編號或姓名"
+                                    placeholder="輸入員工編號"
                                     className="flex-1 bg-black/40 border border-fuchsia-500/30 rounded-xl px-4 py-3 text-fuchsia-100 placeholder:text-fuchsia-700/50 focus:outline-none focus:border-fuchsia-400 text-center text-lg"
                                     disabled={isLoading}
                                 />

@@ -167,27 +167,33 @@ export default {
                 }
 
                 if (method === 'POST') {
-                    const body = await request.json() as { prizeId: number; employeeId: string };
-                    const { prizeId, employeeId } = body;
+                    const body = await request.json() as { 
+                        prizeId?: number; 
+                        employeeId?: string;
+                        winners?: Array<{ prizeId: number; employeeId: string }> 
+                    };
 
-                    if (!prizeId || !employeeId) {
-                        return errorResponse('prizeId and employeeId are required');
+                    let winnersToInsert: Array<{ prizeId: number; employeeId: string }> = [];
+
+                    if (body.winners && Array.isArray(body.winners)) {
+                        winnersToInsert = body.winners;
+                    } else if (body.prizeId && body.employeeId) {
+                        winnersToInsert = [{ prizeId: body.prizeId, employeeId: body.employeeId }];
                     }
 
-                    // Defensive check: Ensure employee hasn't won already
-                    const existing = await env.DB.prepare(
-                        'SELECT id FROM winners WHERE employee_id = ? AND host_id = ?'
-                    ).bind(employeeId, hostId).first();
-
-                    if (existing) {
-                        return errorResponse('Employee has already won a prize');
+                    if (winnersToInsert.length === 0) {
+                        return errorResponse('prizeId and employeeId or winners array are required');
                     }
 
-                    await env.DB.prepare(
-                        'INSERT INTO winners (prize_id, employee_id, host_id) VALUES (?, ?, ?)'
-                    ).bind(prizeId, employeeId, hostId).run();
+                    // Prepare batch statements
+                    const statements = winnersToInsert.map(w => 
+                        env.DB.prepare(
+                            'INSERT OR IGNORE INTO winners (prize_id, employee_id, host_id) VALUES (?, ?, ?)'
+                        ).bind(w.prizeId, w.employeeId, hostId)
+                    );
 
-                    return jsonResponse({ success: true });
+                    await env.DB.batch(statements);
+                    return jsonResponse({ success: true, count: winnersToInsert.length });
                 }
 
                 if (method === 'DELETE') {
