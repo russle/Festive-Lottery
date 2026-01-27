@@ -48,7 +48,18 @@ export const useRollingLogic = (
 
         const eligible = getEligibleEmployees();
         const countToDraw = getCountToDraw();
-        const winners = [...eligible].sort(() => 0.5 - Math.random()).slice(0, countToDraw);
+
+        // 使用 Fisher-Yates 洗牌算法與 Web Crypto API (CSPRNG) 確保公平性
+        const shuffled = [...eligible];
+        const randomValues = new Uint32Array(shuffled.length);
+        window.crypto.getRandomValues(randomValues);
+
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = randomValues[i] % (i + 1);
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+
+        const winners = shuffled.slice(0, countToDraw);
 
         const winnerRecords: Winner[] = winners.map(w => ({
             prizeId: currentPrizeId,
