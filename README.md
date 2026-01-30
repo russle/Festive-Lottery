@@ -1,5 +1,7 @@
 # Festive Lottery - 2026 紫氣東來・尾牙盛典
 
+[English Version Below](#english-version)
+
 這是一個基於 **React 18**、**TypeScript** 和 **Tailwind CSS** 開發的高級節慶抽獎系統，專為企業年終活動、尾牙或春酒設計。
 
 範例：https://festive-lottery.pages.dev/
@@ -71,6 +73,79 @@ npm run build
 ## 📝 授權
 此專案基於 **Apache License 2.0** 授權。
 
+---
 
+<div id="english-version"></div>
 
+# Festive Lottery - 2026 Premium Year-End Celebration
 
+A high-end, festival-themed lottery system built with **React 18**, **TypeScript**, and **Tailwind CSS**, specifically designed for corporate annual dinners, year-end parties, or spring banquets.
+
+Demo: https://festive-lottery.pages.dev/
+
+## 🌟 Key Features
+
+- **Advanced Architecture**: Utilizes **Context API** for global state management, ensuring efficient data flow and eliminating prop drilling.
+- **Composable Hook Design**: Business logic is decoupled into independent sub-hooks (Prize Management, Rolling Logic, Cloud Sync), dramatically improving readability and maintainability.
+- **Performance Optimization**: Implements **Lazy Loading** and Code Splitting for a seamless user experience.
+- **Multi-Host Support**: Allows multiple lottery instances to share a single cloud Worker, with data isolation via `Host ID`.
+- **Dynamic Data Management**: Supports fast import of employees and prizes via CSV or Excel (.xlsx, .xls).
+- **AI Blessings**: Integrated with Google Gemini / OpenAI APIs to intelligently generate witty prize introductions and winner congratulations.
+- **QR Code Inquiry**: Real-time cloud sync and QR code scanning for employees to check their winning status instantly (auto-injecting host parameters).
+- **Remote Control Support**: Compatible with physical presentation clickers (PPT Clicker) and remote iPad controls for mouse-free operation.
+- **Visual Excellence**: Features dynamic particle backgrounds, glassmorphism UI, and gold gradient typography, optimized for high-definition large screens.
+
+## 🏗️ Technical Architecture
+
+The system adopts a modular design with highly decoupled core logic:
+
+### 1. Global State (Context)
+- `LotteryContext`: Centralized management of phases (`standby`, etc.), employees, prizes, winners, and settings.
+
+### 2. Business Logic (Custom Hooks)
+- `usePrizeManager`: Handles prize CRUD operations, winning logic, and local persistence.
+- `useRollingLogic`: Powers the animation engine, countdowns, and sound effects.
+- `useCloudSync`: Automates synchronization of winners with the Cloudflare D1 backend.
+- `useAICommentary`: Encapsulates AI generation interfaces.
+
+### 3. Dynamic Rendering Workflow
+- The system automatically switches between specialized view components based on the current phase (`standby` -> `join` -> `countdown` -> `rolling` -> `reveal` -> `wall`).
+
+## 💡 Usage Modes
+
+### 1. Local Offline Mode
+- **Plug & Play**: No backend required; data is stored directly in the browser's LocalStorage.
+- **Data Privacy**: Ideal for scenarios where internal employee lists are highly sensitive.
+
+### 2. Cloud Sync Mode
+- **Host ID Configuration**: Configure the Worker URL and ID in "System Settings" to enable real-time inquiry.
+- **QR Code Downloads**: Automatically generates inquiry links with host parameters, perfect for printing on table cards or projecting on screen.
+
+## 🎲 Lottery Algorithm
+The system strictly follows fair randomization principles using the **Fisher-Yates Shuffle** combined with modern browser security features:
+1. **Cryptographically Secure Random Numbers (CSPRNG)**: Uses `window.crypto.getRandomValues()` instead of `Math.random()` to ensure cryptographic-level unpredictability.
+2. **Fisher-Yates Shuffle**: Implements the standard $O(n)$ algorithm to guarantee equal probability for every possible list permutation.
+3. **Dynamic Filtering**: Automatically excludes previous winners and validates remaining candidate counts in real-time.
+
+## 🚀 Quick Start
+
+### Installation & Development
+```bash
+npm install
+npm run dev
+```
+
+### Production Build
+```bash
+npm run build
+```
+
+## 🛠 Tech Stack
+- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **Hooks & State**: Context API, Custom Hooks Palette
+- **API Integration**: Cloudflare Workers, Fetch API (with retry support)
+- **Data Handling**: XLSX.js, LocalStorage DB Utility
+- **AI**: Gemini Pro / GPT-4o-mini
+
+## 📝 License
+This project is licensed under the **Apache License 2.0**.

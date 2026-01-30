@@ -33,7 +33,8 @@ dist-ssr
 .env.*
 
 # Package lock files
-package-lock.json
+# Recommended to be committed for consistent installs
+# package-lock.json
 
 # UI/UX Pro Max Skill (使用全域安裝，避免提交至專案)
 .shared/
