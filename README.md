@@ -36,9 +36,11 @@
 
 ## 💡 使用模式
 
-### 1. 本地離線模式
-- **即插即用**：無需後端，資料直接儲存於瀏覽器 LocalStorage。
-- **資料安全**：適合對內部名單高度敏感的場景。
+### 1. 本地離線模式 (預設)
+- **即插即用**：無需配置 Firebase、Google Gemini 或任何後端伺服器。下載代碼後直接執行 `npm run dev` 即可。
+- **資料導入**：在「系統設定」面板中，直接上傳員工名單與獎項 CSV/Excel。
+- **持久化**：資料會自動儲存於瀏覽器的 **LocalStorage** 中，重新整理頁面也不會遺失。
+- **資料安全**：適合對內部名單高度敏感、或無網路環境的場景。
 
 ### 2. 雲端同步模式
 - **設定 Host ID**：在「系統設定」中配置 Worker URL 與識別碼，即可開啟全場即時查獎。
@@ -113,9 +115,11 @@ The system adopts a modular design with highly decoupled core logic:
 
 ## 💡 Usage Modes
 
-### 1. Local Offline Mode
-- **Plug & Play**: No backend required; data is stored directly in the browser's LocalStorage.
-- **Data Privacy**: Ideal for scenarios where internal employee lists are highly sensitive.
+### 1. Local Offline Mode (Default)
+- **Plug & Play**: Works out-of-the-box without Firebase, Google Gemini, or any backend configuration. Simply run `npm run dev` after cloning.
+- **Data Import**: Upload your employee list and prizes via CSV/Excel directly in the "System Settings" panel.
+- **Persistence**: Data is automatically saved to the browser's **LocalStorage**, ensuring it remains available after page refreshes.
+- **Data Privacy**: Ideal for scenarios with highly sensitive internal lists or environments without internet access.
 
 ### 2. Cloud Sync Mode
 - **Host ID Configuration**: Configure the Worker URL and ID in "System Settings" to enable real-time inquiry.
